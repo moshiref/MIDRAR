@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Logo from '../ui/Logo';
 
 const NAV_LINKS = [
@@ -36,7 +37,7 @@ export default function SiteHeader() {
           ))}
         </nav>
         <div className="nav-actions">
-          <a className="signin" href="#">تسجيل الدخول</a>
+          <Link className="signin" to="/open-store">تسجيل الدخول</Link>
           <a className="btn btn-primary" href="#open-store">افتح متجرك الآن</a>
         </div>
         <button
