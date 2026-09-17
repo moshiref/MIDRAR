@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+/* The MIDRAR design tokens + landing page styles, ported verbatim from the
+   original HTML/CSS source of truth. Do not hand-edit values here without
+   updating the source file — see /home/claude/midrar/original-landing-page.html */
+@import "./styles/global.css";
+
+/*
+  Tailwind v4 theme mapping — mirrors the MIDRAR design tokens defined in
+  ./styles/global.css (:root) so future dashboard/app screens can use
+  Tailwind utilities (bg-brand-teal, text-brand-navy, rounded-radius-lg, ...)
+  while staying perfectly in sync with the landing page's own design system.
+  This does NOT redefine the tokens — it only exposes the same CSS variables
+  to Tailwind's utility generator.
+*/
+@theme {
+  --color-brand-teal-bright: var(--brand-teal-bright);
+  --color-brand-teal: var(--brand-teal);
+  --color-brand-teal-deep: var(--brand-teal-deep);
+  --color-brand-blue-bright: var(--brand-blue-bright);
+  --color-brand-blue: var(--brand-blue);
+  --color-brand-blue-deep: var(--brand-blue-deep);
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-navy-deep: var(--brand-navy-deep);
+
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-surface-sunken: var(--surface-sunken);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-on-inverse: var(--text-on-inverse);
+  --color-text-on-inverse-muted: var(--text-on-inverse-muted);
+
+  --color-border-default: var(--border-default);
+  --color-border-strong: var(--border-strong);
+
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+
+  --font-ar: var(--font-ar);
+  --font-en: var(--font-en);
+}
