@@ -1,0 +1,136 @@
+/**
+ * Styles for the auth pages (Login/Register/ForgotPassword). Deliberately
+ * does NOT redeclare the MIDRAR design tokens or `.btn`/`.wrap`/`.eyebrow`
+ * — those already exist site-wide via src/styles/global.css, which is
+ * loaded for every route. Only the pieces that don't exist yet
+ * (form fields, password toggle, the auth card/topbar layout, the
+ * post-submit status banner, the loading spinner) are added here, using
+ * the same var(--brand-*) / var(--radius-*) / var(--shadow-*) tokens so
+ * the page reads as part of the same site, not a different design.
+ */
+
+.auth-shell{
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.auth-shell::before{
+  content:'';
+  position:absolute; inset:0; z-index:0; pointer-events:none;
+  background: radial-gradient(620px 460px at 82% 0%, rgba(62,230,196,0.08), transparent 60%);
+}
+
+.auth-topbar{
+  position: relative; z-index: 1;
+  display:flex; align-items:center; justify-content:space-between;
+  padding-block: 20px;
+}
+.auth-back-link{ font-size:0.9rem; color:var(--text-secondary); font-weight:600; }
+.auth-back-link:hover{ color:var(--text-primary); }
+
+.auth-main{
+  position: relative; z-index: 1;
+  flex:1;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding: 24px 20px 56px;
+}
+
+.auth-card{
+  width:100%; max-width: 440px;
+  background: var(--surface);
+  border:1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-2);
+  padding: 40px 36px;
+}
+@media (max-width: 560px){
+  .auth-card{ padding: 28px 22px; border-radius: var(--radius-md); }
+}
+
+.auth-title{ font-size: clamp(1.35rem, 2.2vw, 1.6rem); margin-bottom:8px; text-align:center; }
+.auth-subtitle{ font-size:0.94rem; color:var(--text-secondary); text-align:center; margin-bottom:30px; }
+
+.auth-form{ display:flex; flex-direction:column; gap:18px; }
+.auth-form-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:18px; }
+@media (max-width: 520px){ .auth-form-grid{ grid-template-columns: 1fr; } }
+
+.auth-field{ display:flex; flex-direction:column; gap:7px; }
+.auth-field label{ font-size:0.87rem; font-weight:700; color:var(--text-primary); }
+.auth-field input{
+  width:100%;
+  padding: 13px 15px;
+  border:1.5px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--text-primary);
+  background: var(--surface);
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.auth-field input::placeholder{ color: var(--text-muted); }
+.auth-field input:focus{
+  border-color: var(--brand-blue);
+  box-shadow: 0 0 0 3px rgba(10,99,214,0.12);
+}
+.auth-field.invalid input{ border-color: var(--danger); }
+.auth-field.invalid input:focus{ box-shadow: 0 0 0 3px rgba(196,64,46,0.12); }
+.auth-error{ font-size:0.8rem; color: var(--danger); font-weight:600; }
+
+.password-input-wrap{ position:relative; display:flex; }
+.password-input-wrap input{ padding-inline-end: 46px; }
+.password-toggle{
+  position:absolute; inset-inline-end:4px; top:50%; transform:translateY(-50%);
+  width:36px; height:36px; display:flex; align-items:center; justify-content:center;
+  border-radius: 8px; color: var(--text-muted); transition: color .15s ease, background .15s ease;
+}
+.password-toggle:hover{ color:var(--text-primary); background: var(--surface-subtle); }
+.password-toggle:focus-visible{ outline:2px solid var(--brand-blue); outline-offset:2px; }
+
+.auth-options-row{ display:flex; justify-content:flex-end; margin-top:-6px; }
+.auth-link{ font-size:0.86rem; font-weight:600; color: var(--brand-blue); }
+.auth-link:hover{ color: var(--brand-blue-deep); text-decoration: underline; }
+
+.btn-block{ width:100%; }
+
+.auth-spinner{
+  width:16px; height:16px; border-radius:50%;
+  border:2px solid rgba(255,255,255,0.4); border-top-color:#fff;
+  animation: auth-spin .7s linear infinite;
+  flex-shrink:0;
+}
+@keyframes auth-spin{ to{ transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce){
+  .auth-spinner{ animation-duration: 1.4s; }
+}
+
+.auth-status{
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  background: rgba(16,183,160,0.09);
+  border: 1px solid rgba(16,183,160,0.22);
+  color: var(--brand-teal-deep);
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.auth-footer-note{
+  margin-top: 22px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+.auth-footer-note a{ color: var(--brand-blue); font-weight:700; }
+.auth-footer-note a:hover{ color: var(--brand-blue-deep); text-decoration: underline; }
+
+/* Focus ring parity with the rest of the site for keyboard navigation */
+.auth-shell a:focus-visible,
+.auth-shell button:focus-visible{
+  outline: 2px solid var(--brand-blue);
+  outline-offset: 2px;
+}

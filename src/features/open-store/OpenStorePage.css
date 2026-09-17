@@ -106,6 +106,27 @@
 .open-store-page .consent-row{ display:flex; align-items:flex-start; gap:10px; margin-bottom:24px; }
 .open-store-page .consent-row input{ margin-top:4px; width:16px; height:16px; accent-color:var(--brand-teal); flex-shrink:0; }
 .open-store-page .consent-row label{ font-size:0.85rem; color:var(--text-secondary); }
+.open-store-page .consent-row.invalid label{ color:var(--danger); }
+.open-store-page .consent-row.invalid input{ outline:1.5px solid var(--danger); outline-offset:2px; }
+
+/* ===== Partner terms ===== */
+.open-store-page .terms-block{ margin-bottom:8px; }
+.open-store-page .terms-heading{ font-size:1.02rem; margin-bottom:12px; }
+.open-store-page .terms-card{
+  max-height:280px; overflow-y:auto; overscroll-behavior:contain;
+  border:1.5px solid var(--border-default); border-radius:14px;
+  background:var(--surface-subtle); padding:18px 20px; margin-bottom:16px;
+}
+.open-store-page .terms-card:focus-visible{ outline:2px solid var(--brand-blue); outline-offset:2px; }
+.open-store-page .terms-section{ margin-bottom:18px; }
+.open-store-page .terms-section:last-child{ margin-bottom:0; }
+.open-store-page .terms-section h4{ font-size:0.9rem; font-weight:800; color:var(--brand-navy); margin-bottom:6px; line-height:1.5; }
+.open-store-page .terms-section p{ font-size:0.84rem; line-height:1.75; color:var(--text-secondary); margin-bottom:8px; }
+.open-store-page .terms-section p:last-child{ margin-bottom:0; }
+.open-store-page .terms-err{ display:block; font-size:0.78rem; color:var(--danger); font-weight:600; margin-top:-14px; margin-bottom:20px; }
+@media (max-width:600px){
+  .open-store-page .terms-card{ max-height:240px; padding:14px 16px; }
+}
 
 .open-store-page .step-actions{ display:flex; justify-content:space-between; gap:12px; margin-top:8px; }
 

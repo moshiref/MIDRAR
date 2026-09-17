@@ -2,6 +2,9 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import PublicLayout from './components/layout/PublicLayout';
 import LandingPage from './features/landing/LandingPage';
 import OpenStorePage from './features/open-store/OpenStorePage';
+import LoginPage from './features/auth/LoginPage';
+import RegisterPage from './features/auth/RegisterPage';
+import ForgotPasswordPage from './features/auth/ForgotPasswordPage';
 import SupplierRoot from './features/supplier/SupplierRoot';
 import SupplierProtectedLayout from './features/supplier/SupplierProtectedLayout';
 import SupplierSignInPage from './features/supplier/session/SupplierSignInPage';
@@ -12,13 +15,16 @@ import SupplierPagePlaceholder from './features/supplier/SupplierPagePlaceholder
 
 /**
  * Routing: the public landing route, the standalone /open-store
- * application flow (its own header/footer, not PublicLayout), and the
- * /supplier/* dashboard (Phase 0 of the supplier-portal delivery plan —
- * mock-session-gated, its own SupplierLayout shell). Pages under
- * /supplier that later phases haven't built yet render
- * SupplierPagePlaceholder rather than nothing. Future phases add
- * merchant/admin dashboards and the per-merchant storefront under their
- * own layouts, per the Phase 0 routing plan.
+ * application flow, /login + /register + /forgot-password (frontend-only
+ * auth — see src/features/auth/authService.js), and the /supplier/*
+ * dashboard (Phase 0 of the supplier-portal delivery plan —
+ * mock-session-gated, its own SupplierLayout shell). None of the
+ * standalone flow pages use PublicLayout — each has its own minimal
+ * header instead of the full marketing nav. Pages under /supplier that
+ * later phases haven't built yet render SupplierPagePlaceholder rather
+ * than nothing. Future phases add merchant/admin dashboards and the
+ * per-merchant storefront under their own layouts, per the Phase 0
+ * routing plan.
  */
 function App() {
   return (
@@ -28,6 +34,9 @@ function App() {
           <Route path="/" element={<LandingPage />} />
         </Route>
         <Route path="/open-store" element={<OpenStorePage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
         <Route path="/supplier" element={<SupplierRoot />}>
           <Route path="sign-in" element={<SupplierSignInPage />} />

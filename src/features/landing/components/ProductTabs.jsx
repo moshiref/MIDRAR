@@ -5,7 +5,6 @@ const TABS = [
   { key: 'merchant', label: 'لوحة التاجر' },
   { key: 'supplier', label: 'بوابة المورد' },
   { key: 'delivery', label: 'عمليات التوصيل' },
-  { key: 'admin', label: 'مركز التحكم' },
 ];
 
 /**
@@ -154,37 +153,6 @@ export default function ProductTabs() {
               </div>
               <div className="info"><div className="t">خرج للتوصيل · #MD-20477</div><div className="s">كفرسوسة</div></div>
               <div className="amt en">115</div>
-            </div>
-          </div>
-        </div>
-
-        <div className={`ptab-panel${activeTab === 'admin' ? ' active' : ''}`} data-panel="admin">
-          <div className="ptab-copy">
-            <span className="tagline">مركز التحكم</span>
-            <h3>غرفة عمليات مدرار كلها.</h3>
-            <p>طلبات فتح المتاجر، مخاطر التجار والموردين، التسويات، والصحة العامة للمنظومة — بمكان واحد لفريق التشغيل.</p>
-            <ul className="feature-list">
-              <li><CheckIcon size={15} stroke="var(--brand-navy)" strokeWidth={2.4} /> طلبات انضمام</li>
-              <li><CheckIcon size={15} stroke="var(--brand-navy)" strokeWidth={2.4} /> إدارة المخاطر</li>
-              <li><CheckIcon size={15} stroke="var(--brand-navy)" strokeWidth={2.4} /> سجل تدقيق</li>
-              <li><CheckIcon size={15} stroke="var(--brand-navy)" strokeWidth={2.4} /> صحة النظام</li>
-            </ul>
-          </div>
-          <div className="ptab-mock proximity">
-            <div className="hero-panel-head">
-              <div className="store-id">
-                <div className="avatar" style={{ background: 'linear-gradient(135deg,#14304F,#071C36)' }}></div>
-                <div className="store-name">مركز التحكم<span>فريق التشغيل</span></div>
-              </div>
-              <span className="live-pill" style={{ color: '#C4402E', background: 'rgba(196,64,46,0.1)' }}>
-                <span className="dot" style={{ background: '#C4402E' }}></span> 3 تحتاج إجراء
-              </span>
-            </div>
-            <div className="hero-kpis">
-              <div className="kpi"><div className="kpi-label">طلبات انضمام</div><div className="kpi-value en">18</div></div>
-              <div className="kpi"><div className="kpi-label">مخزون منخفض</div><div className="kpi-value en">7</div></div>
-              <div className="kpi"><div className="kpi-label">تسويات معلقة</div><div className="kpi-value en">4</div></div>
-              <div className="kpi"><div className="kpi-label">صحة النظام</div><div className="kpi-value en">99.9<small>%</small></div></div>
             </div>
           </div>
         </div>

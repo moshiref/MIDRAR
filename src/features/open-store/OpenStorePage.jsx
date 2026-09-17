@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Logo from '../../components/ui/Logo';
 import { useWizardForm } from '../../components/forms/useWizardForm';
 import { ProgressBar, TextField, SelectField, ChoiceGroup, TagSelect, StepActions, SuccessCard } from '../../components/forms/WizardFields';
+import PartnerTermsSection, { PARTNER_TERMS_VERSION } from '../../components/forms/PartnerTermsSection';
 import { genRef, saveApplication } from '../../lib/applicationsStorage';
 import './OpenStorePage.css';
 
@@ -65,7 +66,7 @@ const MERCHANT_INITIAL = {
   fullName: '', phone: '', whatsapp: '', email: '', city: '',
   storeName: '', sector: '', currentActivity: 'none',
   experience: 'none', channels: [],
-  links: '', notes: '', consent: false,
+  links: '', notes: '', consent: false, termsAccepted: false,
 };
 
 function MerchantWizard() {
@@ -73,15 +74,33 @@ function MerchantWizard() {
     totalSteps: 4,
     requiredByStep: MERCHANT_REQUIRED,
     initialData: MERCHANT_INITIAL,
-    canSubmit: (d) => d.consent,
+    canSubmit: (d) => d.consent && d.termsAccepted,
     onSubmit: (data) => {
       const ref = genRef('MD-APP');
-      saveApplication({ id: Date.now(), type: 'merchant', status: 'SUBMITTED', submittedAt: new Date().toISOString(), ref, fields: data });
+      saveApplication({
+        id: Date.now(),
+        type: 'merchant',
+        status: 'SUBMITTED',
+        submittedAt: new Date().toISOString(),
+        ref,
+        fields: { ...data, termsVersion: PARTNER_TERMS_VERSION, termsAcceptedAt: new Date().toISOString() },
+      });
       return { ref };
     },
   });
   const { step, data, invalidFields, submitted, result, setField, toggleListField, goNext, goPrev, submit } = w;
   const invalid = (name) => invalidFields.has(name);
+  const [termsError, setTermsError] = useState('');
+
+  const handleSubmit = (e) => {
+    if (!data.termsAccepted) {
+      e.preventDefault();
+      setTermsError('يرجى الموافقة على شروط وأحكام شركاء منصة مدرار للمتابعة.');
+      return;
+    }
+    setTermsError('');
+    submit(e);
+  };
 
   if (submitted) {
     return (
@@ -97,7 +116,7 @@ function MerchantWizard() {
   return (
     <>
       <ProgressBar labels={['معلوماتك', 'مشروعك', 'خبرتك', 'تفاصيل إضافية']} total={4} step={step} />
-      <form onSubmit={submit}>
+      <form onSubmit={handleSubmit}>
         {step === 1 && (
           <div className="form-step active">
             <h3>معلوماتك</h3>
@@ -148,11 +167,17 @@ function MerchantWizard() {
               <label>ملاحظات <span className="opt">(اختياري)</span></label>
               <textarea rows={3} name="notes" value={data.notes} onChange={(e) => setField('notes', e.target.value)} />
             </div>
+            <PartnerTermsSection
+              accepted={data.termsAccepted}
+              onAcceptedChange={(v) => { setField('termsAccepted', v); setTermsError(''); }}
+              error={termsError}
+              checkboxId="merchantTerms"
+            />
             <div className="consent-row">
               <input type="checkbox" id="merchantConsent" checked={data.consent} onChange={(e) => setField('consent', e.target.checked)} />
               <label htmlFor="merchantConsent">أوافق على مشاركة معلوماتي مع فريق مدرار للتواصل معي بخصوص طلب فتح المتجر.</label>
             </div>
-            <StepActions onPrev={goPrev} submitLabel="إرسال طلب فتح المتجر" submitDisabled={!data.consent} />
+            <StepActions onPrev={goPrev} submitLabel="إرسال طلب فتح المتجر" submitDisabled={!data.consent || !data.termsAccepted} />
           </div>
         )}
       </form>
@@ -165,7 +190,7 @@ const SUPPLIER_INITIAL = {
   fullName: '', phone: '', whatsapp: '', email: '', companyName: '', city: '', activityType: 'factory',
   sectors: [], productTypes: '', productCount: '', prepTime: 'أقل من يوم',
   hasStock: 'نعم', hasWarehouse: 'نعم', canUpdateStock: 'نعم', canPrepDaily: 'نعم',
-  assets: [], notes: '', consent: false,
+  assets: [], notes: '', consent: false, termsAccepted: false,
 };
 
 function SupplierWizard() {
@@ -173,15 +198,33 @@ function SupplierWizard() {
     totalSteps: 3,
     requiredByStep: SUPPLIER_REQUIRED,
     initialData: SUPPLIER_INITIAL,
-    canSubmit: (d) => d.consent,
+    canSubmit: (d) => d.consent && d.termsAccepted,
     onSubmit: (data) => {
       const ref = genRef('MD-SUP');
-      saveApplication({ id: Date.now(), type: 'supplier', status: 'SUBMITTED', submittedAt: new Date().toISOString(), ref, fields: data });
+      saveApplication({
+        id: Date.now(),
+        type: 'supplier',
+        status: 'SUBMITTED',
+        submittedAt: new Date().toISOString(),
+        ref,
+        fields: { ...data, termsVersion: PARTNER_TERMS_VERSION, termsAcceptedAt: new Date().toISOString() },
+      });
       return { ref };
     },
   });
   const { step, data, invalidFields, submitted, result, setField, toggleListField, goNext, goPrev, submit } = w;
   const invalid = (name) => invalidFields.has(name);
+  const [termsError, setTermsError] = useState('');
+
+  const handleSubmit = (e) => {
+    if (!data.termsAccepted) {
+      e.preventDefault();
+      setTermsError('يرجى الموافقة على شروط وأحكام شركاء منصة مدرار للمتابعة.');
+      return;
+    }
+    setTermsError('');
+    submit(e);
+  };
 
   if (submitted) {
     return (
@@ -197,7 +240,7 @@ function SupplierWizard() {
   return (
     <>
       <ProgressBar labels={['النشاط', 'المنتجات', 'التشغيل']} total={3} step={step} />
-      <form onSubmit={submit}>
+      <form onSubmit={handleSubmit}>
         {step === 1 && (
           <div className="form-step active">
             <h3>معلومات النشاط</h3>
@@ -247,11 +290,17 @@ function SupplierWizard() {
               <label>ملاحظات <span className="opt">(اختياري)</span></label>
               <textarea rows={3} name="notes" value={data.notes} onChange={(e) => setField('notes', e.target.value)} />
             </div>
+            <PartnerTermsSection
+              accepted={data.termsAccepted}
+              onAcceptedChange={(v) => { setField('termsAccepted', v); setTermsError(''); }}
+              error={termsError}
+              checkboxId="supplierTerms"
+            />
             <div className="consent-row">
               <input type="checkbox" id="supplierConsent" checked={data.consent} onChange={(e) => setField('consent', e.target.checked)} />
               <label htmlFor="supplierConsent">أوافق على مشاركة معلوماتي مع فريق مدرار للتواصل معي بخصوص طلب الانضمام كمورد.</label>
             </div>
-            <StepActions onPrev={goPrev} submitLabel="إرسال طلب الانضمام كمورد" submitDisabled={!data.consent} />
+            <StepActions onPrev={goPrev} submitLabel="إرسال طلب الانضمام كمورد" submitDisabled={!data.consent || !data.termsAccepted} />
           </div>
         )}
       </form>

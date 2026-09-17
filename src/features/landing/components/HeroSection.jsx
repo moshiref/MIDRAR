@@ -18,7 +18,7 @@ export default function HeroSection() {
               مسبقًا. مدرار تجمع لك التقنية والتوريد والتشغيل والتوصيل ضمن منظومة واحدة.
             </p>
             <div className="hero-actions">
-              <Button href="#open-store" variant="primary" size="lg">افتح متجرك الآن</Button>
+              <Button href="/open-store" variant="primary" size="lg">انضم إلينا</Button>
               <Button href="#how" variant="secondary" size="lg">اكتشف كيف تعمل مدرار</Button>
             </div>
             <div className="hero-proof">

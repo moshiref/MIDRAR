@@ -11,12 +11,12 @@ export default function FinalCta() {
           <p>قدّم طلب فتح متجرك على مدرار، وابدأ الخطوة الأولى نحو بناء تجارتك الإلكترونية.</p>
           <div className="hero-actions">
             <Button
-              href="#open-store"
+              href="/open-store"
               variant="primary"
               size="lg"
               style={{ background: '#fff', color: 'var(--brand-navy)' }}
             >
-              افتح متجرك الآن
+              انضم إلينا
             </Button>
             <Button href="#supplier-registration" variant="ghost-inverse" size="lg">سجّل كمورد</Button>
           </div>

@@ -37,8 +37,8 @@ export default function SiteHeader() {
           ))}
         </nav>
         <div className="nav-actions">
-          <Link className="signin" to="/open-store">تسجيل الدخول</Link>
-          <a className="btn btn-primary" href="#open-store">افتح متجرك الآن</a>
+          <Link className="signin" to="/login">تسجيل الدخول</Link>
+          <Link className="btn btn-primary" to="/open-store">انضم إلينا</Link>
         </div>
         <button
           className={`nav-toggle${isOpen ? ' open' : ''}`}
@@ -55,9 +55,9 @@ export default function SiteHeader() {
             {link.label}
           </a>
         ))}
-        <a className="btn btn-primary" href="#open-store" onClick={closeMobile}>
-          افتح متجرك الآن
-        </a>
+        <Link className="btn btn-primary" to="/open-store" onClick={closeMobile}>
+          انضم إلينا
+        </Link>
       </div>
     </header>
   );

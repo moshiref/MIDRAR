@@ -19,7 +19,7 @@ export default function MerchantSupplierSplit() {
                 <li key={item}><CheckIcon size={15} stroke="var(--brand-teal-bright)" strokeWidth={2.4} /> {item}</li>
               ))}
             </ul>
-            <Button href="#open-store" variant="ghost-inverse">افتح متجرك الآن</Button>
+            <Button href="/open-store" variant="ghost-inverse">انضم إلينا</Button>
           </div>
           <div className="panel panel-supplier proximity" id="suppliers">
             <span className="panel-tag">للموردين</span>
