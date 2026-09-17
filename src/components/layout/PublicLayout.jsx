@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import AmbientBackground from '../common/AmbientBackground';
+import FloatingJoinCta from '../common/FloatingJoinCta';
 import SiteHeader from './SiteHeader';
 import SiteFooter from './SiteFooter';
 import useScrollReveal from '../../hooks/useScrollReveal';
@@ -19,7 +20,9 @@ import useMagneticButtons from '../../hooks/useMagneticButtons';
  * hooks run here (the parent), React has already committed the header,
  * the routed page content and the footer by the time their effects fire —
  * exactly mirroring the original script running after the full body was
- * in the DOM.
+ * in the DOM. FloatingJoinCta is mounted here (not per-page) so the
+ * fixed "انضم إلينا" button only ever appears on this public shell, never
+ * on /open-store, /login, /supplier, ...
  */
 export default function PublicLayout() {
   useScrollReveal();
@@ -38,6 +41,7 @@ export default function PublicLayout() {
         <Outlet />
       </main>
       <SiteFooter />
+      <FloatingJoinCta />
     </>
   );
 }

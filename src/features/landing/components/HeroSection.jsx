@@ -3,7 +3,7 @@ import Button from '../../../components/ui/Button';
 
 export default function HeroSection() {
   return (
-    <section className="hero">
+    <section className="hero" id="hero">
       <div className="mesh"></div>
       <img className="logo-watermark wm-hero" src={logoMark} alt="" />
       <div className="wrap">
@@ -18,7 +18,7 @@ export default function HeroSection() {
               مسبقًا. مدرار تجمع لك التقنية والتوريد والتشغيل والتوصيل ضمن منظومة واحدة.
             </p>
             <div className="hero-actions">
-              <Button href="/open-store" variant="primary" size="lg">انضم إلينا</Button>
+              <Button href="/login" variant="primary" size="lg">تسجيل الدخول</Button>
               <Button href="#how" variant="secondary" size="lg">اكتشف كيف تعمل مدرار</Button>
             </div>
             <div className="hero-proof">

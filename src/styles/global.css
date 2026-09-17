@@ -103,23 +103,27 @@
     backdrop-filter: blur(14px) saturate(1.4);
     border-bottom: 1px solid var(--border-default);
   }
-  .nav{ display:flex; align-items:center; justify-content:space-between; padding-block: 15px; }
+  .nav{
+    display:grid; grid-template-columns: 1fr auto 1fr; align-items:center;
+    column-gap:20px; padding-block: 15px;
+  }
+  .logo-link{ justify-self:start; }
   .logo-mark{ display:flex; align-items:center; gap:10px; }
   .logo-mark img{ height:26px; width:auto; transition: transform .45s cubic-bezier(.2,.8,.2,1); }
   .logo-mark:hover img{ transform: rotate(-8deg) scale(1.08); }
   .logo-word{ font-family: var(--font-en); font-weight:800; font-size:1.2rem; color:var(--brand-navy); letter-spacing: 0.015em;}
-  .nav-links{ display:flex; align-items:center; gap:34px; }
+  .nav-links{ display:flex; align-items:center; gap:34px; justify-self:center; }
   .nav-links a{ font-size:0.95rem; color:var(--text-secondary); font-weight:500; transition:color .15s; position:relative; }
   .nav-links a:hover{ color: var(--text-primary); }
-  .nav-actions{ display:flex; align-items:center; gap:14px; }
+  .nav-actions{ display:flex; align-items:center; gap:14px; justify-self:end; }
   .nav-actions .btn{ padding: 11px 22px; font-size:0.92rem; }
-  .signin{ color:var(--text-secondary); font-weight:600; font-size:0.92rem; padding:10px 8px; }
+  .nav-join{ color:var(--text-secondary); font-weight:600; font-size:0.92rem; padding:10px 8px; }
   .nav-toggle{ display:none; }
 
   @media (max-width: 940px){
     .nav-links{ display:none; }
     .nav-toggle{ display:block; }
-    .signin{ display:none; }
+    .nav-join{ display:none; }
   }
 
   /* ===== Hero ===== */
@@ -452,20 +456,14 @@
       padding .4s cubic-bezier(.4,0,.2,1), border-color .4s ease, visibility 0s linear;
   }
   .mobile-panel a{ padding:13px 4px; font-size:0.98rem; color:var(--text-secondary); font-weight:600; border-bottom:1px solid var(--border-default); }
-  .mobile-panel .btn{ margin-top:14px; }
-  .mobile-panel .btn-primary{ color:#fff; }
 
-  /* Soft cascading reveal for the panel's own links/button, on top of the panel's slide-down */
+  /* Soft cascading reveal for the panel's own links, on top of the panel's slide-down */
   .mobile-panel a{ opacity:0; transform: translateY(-6px); transition: opacity .28s ease, transform .28s ease; }
   .mobile-panel.open a{ opacity:1; transform: translateY(0); }
   .mobile-panel.open a:nth-child(1){ transition-delay: .06s; }
   .mobile-panel.open a:nth-child(2){ transition-delay: .09s; }
   .mobile-panel.open a:nth-child(3){ transition-delay: .12s; }
   .mobile-panel.open a:nth-child(4){ transition-delay: .15s; }
-  .mobile-panel.open a:nth-child(5){ transition-delay: .18s; }
-  .mobile-panel.open a:nth-child(6){ transition-delay: .21s; }
-  .mobile-panel.open a:nth-child(7){ transition-delay: .24s; }
-  .mobile-panel.open a:nth-child(8){ transition-delay: .27s; }
 
   @media (prefers-reduced-motion: reduce){
     .mobile-panel, .mobile-panel.open, .mobile-panel a{ transition:none !important; }
@@ -473,10 +471,6 @@
 
   @media (max-width: 940px){
     .nav-toggle{ display:flex; }
-    /* "انضم إلينا" stays only in the mobile menu panel on mobile — the
-       top navbar's copy (shared markup/class with desktop) is hidden
-       here instead of in the component, so desktop is untouched. */
-    .nav-actions .btn{ display:none; }
   }
 
   /* nav active link */
@@ -667,3 +661,178 @@
 
   /* ===== Magnetic buttons ===== */
   .btn{ will-change: transform; }
+
+  /* ===== Merchant plans ("باقات التجار") ===== */
+  .plans-intro{ max-width:620px; margin-inline:auto; margin-top:12px; }
+  .plans-note{ margin-top:18px; }
+
+  .plans-grid{
+    display:flex; gap:16px; overflow-x:auto; scroll-snap-type:x proximity;
+    padding-bottom:10px; margin-top:48px; scroll-padding-inline:28px;
+  }
+  .plan-card{
+    scroll-snap-align:start; flex:0 0 250px;
+    display:flex; flex-direction:column;
+    background:var(--surface); border:1.5px solid var(--border-default); border-radius: var(--radius-md);
+    padding:26px 22px; box-shadow: var(--shadow-1); transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+  }
+  .plan-card:hover{ box-shadow: var(--shadow-2); transform: translateY(-3px); }
+  .plan-card.is-free{ border-color: var(--brand-teal); }
+  .plan-card .plan-badge{
+    align-self:flex-start; font-size:0.74rem; font-weight:700; color: var(--brand-teal-deep);
+    background: rgba(16,183,160,0.12); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+  }
+  .plan-card h3{ font-size:1.15rem; margin-bottom:6px; }
+  .plan-card .plan-access{ font-size:0.8rem; color:var(--text-muted); margin-bottom:18px; min-height:34px; }
+  .plan-stats{ display:flex; flex-direction:column; gap:9px; padding:14px 0; border-block:1px solid var(--border-default); margin-bottom:18px; }
+  .plan-stats li{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; font-size:0.84rem; }
+  .plan-stats li .k{ color:var(--text-muted); flex-shrink:0; }
+  .plan-stats li .v{ font-weight:800; color:var(--text-primary); text-align:end; }
+  .plan-stats li .v.en{ font-family:var(--font-en); direction:ltr; }
+  .plan-features{ display:flex; flex-direction:column; gap:11px; }
+  .plan-features li{ display:flex; align-items:flex-start; gap:8px; font-size:0.84rem; color:var(--text-secondary); line-height:1.55; }
+  .plan-features li svg{ flex-shrink:0; margin-top:3px; }
+
+  @media (min-width: 640px){
+    .plans-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(210px,1fr)); overflow:visible; }
+    .plan-card{ flex:initial; }
+  }
+
+  .plans-scroll-hint{ display:block; text-align:center; font-size:0.78rem; color:var(--text-muted); margin-top:10px; }
+  @media (min-width: 640px){ .plans-scroll-hint{ display:none; } }
+
+  .plans-subhead{ text-align:center; margin-top:56px; margin-bottom:28px; }
+  .plans-subhead h3{ font-size:clamp(1.3rem,2vw,1.6rem); margin-bottom:10px; }
+  .plans-subhead p{ max-width:600px; margin-inline:auto; color:var(--text-secondary); }
+
+  .plan-example{
+    display:grid; grid-template-columns: repeat(2,1fr); gap:10px 16px;
+    background: var(--surface-subtle); border-radius:12px; padding:16px 18px; margin-top:16px;
+  }
+  .plan-example .row{ display:flex; justify-content:space-between; gap:8px; font-size:0.84rem; }
+  .plan-example .row .k{ color:var(--text-muted); }
+  .plan-example .row .v{ font-weight:800; font-family:var(--font-en); direction:ltr; color:var(--text-primary); }
+  .plan-example .row.total{ grid-column:1/-1; border-top:1px dashed var(--border-strong); padding-top:10px; margin-top:2px; }
+  .plan-example .row.total .v{ color:var(--brand-teal-deep); }
+
+  .plan-info-grid{ display:grid; grid-template-columns: repeat(2,1fr); gap:18px; margin-top:52px; }
+  @media (max-width:860px){ .plan-info-grid{ grid-template-columns:1fr; } }
+  .plan-info-card h4{ font-size:1rem; margin-bottom:10px; }
+  .plan-info-card p{ font-size:0.88rem; color:var(--text-secondary); margin-bottom:6px; }
+  .plan-info-card ul{ display:flex; flex-direction:column; gap:8px; margin-top:12px; }
+  .plan-info-card ul li{ display:flex; align-items:flex-start; gap:8px; font-size:0.85rem; color:var(--text-secondary); line-height:1.55; }
+  .plan-info-card ul li svg{ flex-shrink:0; margin-top:3px; }
+
+  .plans-cta{ text-align:center; margin-top:52px; }
+  .plans-cta p{ margin-bottom:20px; color:var(--text-secondary); }
+
+  /* ===== Floating join CTA (circular) ===== */
+  .floating-join-wrap{
+    position: fixed;
+    right: calc(24px + env(safe-area-inset-right, 0px));
+    bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+    z-index: 45;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 1; visibility: visible; transform: translateY(0);
+    transition: opacity .25s ease, transform .25s ease, visibility 0s linear 0s;
+  }
+  .floating-join-wrap.is-hidden{
+    opacity: 0; transform: translateY(14px); pointer-events: none; visibility: hidden;
+    transition: opacity .25s ease, transform .25s ease, visibility 0s linear .25s;
+  }
+
+  .floating-join-cta{
+    position: relative; z-index: 2;
+    width: 88px; height: 88px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    padding: 0 8px;
+    background: linear-gradient(135deg, var(--brand-teal-bright), var(--brand-blue)); color: #fff;
+    font-weight: 700; font-size: 0.82rem; line-height: 1.25; white-space: normal;
+    box-shadow: 0 10px 24px -8px rgba(9,25,46,0.45), 0 2px 6px rgba(9,25,46,0.15);
+    transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+    animation: floatingCtaPulse 3.6s ease-in-out infinite;
+  }
+  .floating-join-cta:hover{
+    background: linear-gradient(135deg, var(--brand-teal), var(--brand-blue-deep));
+    transform: scale(1.04);
+    box-shadow: 0 14px 30px -8px rgba(9,25,46,0.5), 0 3px 8px rgba(9,25,46,0.18);
+  }
+  .floating-join-cta:focus-visible{ outline: 2px solid var(--brand-teal-bright); outline-offset: 3px; }
+
+  @keyframes floatingCtaPulse{
+    0%, 82%, 100%{ transform: scale(1); }
+    88%{ transform: scale(1.06); }
+    94%{ transform: scale(1); }
+  }
+
+  .floating-join-ring{
+    position:absolute; inset:0; z-index:1; border-radius:50%;
+    border: 1.5px solid var(--brand-teal-bright);
+    opacity:0; pointer-events:none;
+    animation: floatingRingPulse 3.6s ease-out infinite;
+  }
+  @keyframes floatingRingPulse{
+    0%{ transform: scale(1); opacity:0; }
+    8%{ opacity:0.55; }
+    40%{ transform: scale(1.45); opacity:0; }
+    100%{ opacity:0; }
+  }
+
+  /* Bubble field — per-bubble size/position/animation-name/duration/delay/--bubble-opacity are set inline (FloatingJoinCta.jsx); only the shared drift "directions" live here. */
+  .floating-join-bubble{
+    position:absolute; z-index:0; border-radius:50%; pointer-events:none;
+    background: radial-gradient(circle at 35% 30%, rgba(62,230,196,0.9), rgba(16,183,160,0.35) 60%, transparent 75%);
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+  }
+
+  @keyframes bubbleUp{
+    0%{ transform: translateY(0) scale(0.5); opacity:0; }
+    18%{ opacity: var(--bubble-opacity, .7); }
+    55%{ transform: translateY(-24px) scale(1); opacity: calc(var(--bubble-opacity, .7) * 0.85); }
+    85%{ opacity:0; }
+    100%{ transform: translateY(-32px) scale(0.5); opacity:0; }
+  }
+  @keyframes bubbleUpLeft{
+    0%{ transform: translate(0,0) scale(0.5); opacity:0; }
+    18%{ opacity: var(--bubble-opacity, .7); }
+    55%{ transform: translate(-16px,-22px) scale(1); opacity: calc(var(--bubble-opacity, .7) * 0.85); }
+    85%{ opacity:0; }
+    100%{ transform: translate(-22px,-30px) scale(0.5); opacity:0; }
+  }
+  @keyframes bubbleUpRight{
+    0%{ transform: translate(0,0) scale(0.5); opacity:0; }
+    18%{ opacity: var(--bubble-opacity, .7); }
+    55%{ transform: translate(16px,-22px) scale(1); opacity: calc(var(--bubble-opacity, .7) * 0.85); }
+    85%{ opacity:0; }
+    100%{ transform: translate(22px,-30px) scale(0.5); opacity:0; }
+  }
+  @keyframes bubbleDrift{
+    0%{ transform: translate(0,0) scale(0.5); opacity:0; }
+    25%{ opacity: var(--bubble-opacity, .6); transform: translate(6px,-10px) scale(0.85); }
+    55%{ transform: translate(-8px,-22px) scale(1); opacity: calc(var(--bubble-opacity, .6) * 0.8); }
+    85%{ opacity:0; }
+    100%{ transform: translate(-4px,-28px) scale(0.5); opacity:0; }
+  }
+
+  @media (max-width: 900px) and (min-width: 641px){
+    .floating-join-cta{ width:78px; height:78px; font-size:0.78rem; }
+  }
+
+  @media (max-width: 640px){
+    .floating-join-wrap{
+      right: calc(14px + env(safe-area-inset-right, 0px));
+      bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    }
+    .floating-join-cta{ width:68px; height:68px; font-size:0.72rem; padding:0 4px; }
+    /* calmer, smaller cloud on mobile — keep the first 8 bubbles, hide the rest */
+    .floating-join-bubble:nth-child(n+9){ display:none; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .floating-join-cta{ animation:none; }
+    .floating-join-ring{ animation:none; opacity:0; }
+    .floating-join-bubble{ animation:none; opacity:0; }
+    .floating-join-wrap{ transition:none; }
+    .floating-join-wrap.is-hidden{ transition:none; }
+  }

@@ -5,6 +5,7 @@ import CompareSection from './components/CompareSection';
 import EcosystemFlow from './components/EcosystemFlow';
 import LiveOrdersSection from './components/LiveOrdersSection';
 import ValueBentoGrid from './components/ValueBentoGrid';
+import MerchantPlansSection from './components/MerchantPlansSection';
 import ProductTabs from './components/ProductTabs';
 import HowItWorksTimeline from './components/HowItWorksTimeline';
 import MerchantSupplierSplit from './components/MerchantSupplierSplit';
@@ -17,8 +18,11 @@ import useHeroTilt from '../../hooks/useHeroTilt';
  * The MIDRAR landing page, assembled from the same sections and in the
  * same order as the original single HTML file's <body>: hero, wave
  * divider, trust strip, compare, ecosystem flow, live orders, value
- * bento grid, product tabs, how-it-works timeline, merchant/supplier
- * split, security grid, FAQ, final CTA. Header/footer/ambient background
+ * bento grid, merchant plans, product tabs, how-it-works timeline,
+ * merchant/supplier split, security grid, FAQ, final CTA. MerchantPlansSection
+ * ("باقات التجار") is the one addition to that original order — free
+ * performance tiers that unlock with sales, placed right after "لماذا
+ * مدرار" per the plans feature spec. Header/footer/ambient background
  * and the page-wide effect hooks live in PublicLayout.
  */
 export default function LandingPage() {
@@ -33,6 +37,7 @@ export default function LandingPage() {
       <EcosystemFlow />
       <LiveOrdersSection />
       <ValueBentoGrid />
+      <MerchantPlansSection />
       <ProductTabs />
       <HowItWorksTimeline />
       <MerchantSupplierSplit />

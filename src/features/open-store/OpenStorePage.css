@@ -118,10 +118,17 @@
   background:var(--surface-subtle); padding:18px 20px; margin-bottom:16px;
 }
 .open-store-page .terms-card:focus-visible{ outline:2px solid var(--brand-blue); outline-offset:2px; }
-.open-store-page .terms-section{ margin-bottom:18px; }
+.open-store-page .terms-section{
+  /* Neutralize global.css's generic `section{ padding-block: 100px; }` rule
+     (meant for the landing page's big top-level sections) — since each
+     clause here is a semantic <section>, it inherited that same 100px
+     top+bottom padding, which was the real source of the huge gaps, not
+     the margin values below. */
+  padding-block:0; margin-bottom:22px;
+}
 .open-store-page .terms-section:last-child{ margin-bottom:0; }
-.open-store-page .terms-section h4{ font-size:0.9rem; font-weight:800; color:var(--brand-navy); margin-bottom:6px; line-height:1.5; }
-.open-store-page .terms-section p{ font-size:0.84rem; line-height:1.75; color:var(--text-secondary); margin-bottom:8px; }
+.open-store-page .terms-section h4{ font-size:0.9rem; font-weight:800; color:var(--brand-navy); margin-bottom:8px; line-height:1.5; }
+.open-store-page .terms-section p{ font-size:0.84rem; line-height:1.8; color:var(--text-secondary); margin-bottom:10px; }
 .open-store-page .terms-section p:last-child{ margin-bottom:0; }
 .open-store-page .terms-err{ display:block; font-size:0.78rem; color:var(--danger); font-weight:600; margin-top:-14px; margin-bottom:20px; }
 @media (max-width:600px){
