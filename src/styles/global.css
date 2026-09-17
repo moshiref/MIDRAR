@@ -438,14 +438,46 @@
   .nav-toggle.open span::after{ transform: translateY(-6px) rotate(-45deg); }
 
   .mobile-panel{
-    display:none; flex-direction:column; gap:2px; padding: 10px 28px 22px;
-    border-top:1px solid var(--border-default); background: var(--background);
+    display:flex; flex-direction:column; gap:2px; padding: 0 28px;
+    border-top:1px solid transparent; background: var(--background);
+    max-height:0; overflow:hidden; visibility:hidden; opacity:0; transform: translateY(-8px);
+    transition: max-height .4s cubic-bezier(.4,0,.2,1), opacity .28s ease, transform .32s cubic-bezier(.2,.8,.2,1),
+      padding .4s cubic-bezier(.4,0,.2,1), border-color .4s ease, visibility 0s linear .4s;
   }
-  .mobile-panel.open{ display:flex; }
+  .mobile-panel.open{
+    max-height: 560px; padding: 10px 28px 22px;
+    border-top-color: var(--border-default);
+    visibility:visible; opacity:1; transform: translateY(0);
+    transition: max-height .4s cubic-bezier(.4,0,.2,1), opacity .32s ease .05s, transform .36s cubic-bezier(.2,.8,.2,1) .05s,
+      padding .4s cubic-bezier(.4,0,.2,1), border-color .4s ease, visibility 0s linear;
+  }
   .mobile-panel a{ padding:13px 4px; font-size:0.98rem; color:var(--text-secondary); font-weight:600; border-bottom:1px solid var(--border-default); }
   .mobile-panel .btn{ margin-top:14px; }
+  .mobile-panel .btn-primary{ color:#fff; }
 
-  @media (max-width: 940px){ .nav-toggle{ display:flex; } }
+  /* Soft cascading reveal for the panel's own links/button, on top of the panel's slide-down */
+  .mobile-panel a{ opacity:0; transform: translateY(-6px); transition: opacity .28s ease, transform .28s ease; }
+  .mobile-panel.open a{ opacity:1; transform: translateY(0); }
+  .mobile-panel.open a:nth-child(1){ transition-delay: .06s; }
+  .mobile-panel.open a:nth-child(2){ transition-delay: .09s; }
+  .mobile-panel.open a:nth-child(3){ transition-delay: .12s; }
+  .mobile-panel.open a:nth-child(4){ transition-delay: .15s; }
+  .mobile-panel.open a:nth-child(5){ transition-delay: .18s; }
+  .mobile-panel.open a:nth-child(6){ transition-delay: .21s; }
+  .mobile-panel.open a:nth-child(7){ transition-delay: .24s; }
+  .mobile-panel.open a:nth-child(8){ transition-delay: .27s; }
+
+  @media (prefers-reduced-motion: reduce){
+    .mobile-panel, .mobile-panel.open, .mobile-panel a{ transition:none !important; }
+  }
+
+  @media (max-width: 940px){
+    .nav-toggle{ display:flex; }
+    /* "انضم إلينا" stays only in the mobile menu panel on mobile — the
+       top navbar's copy (shared markup/class with desktop) is hidden
+       here instead of in the component, so desktop is untouched. */
+    .nav-actions .btn{ display:none; }
+  }
 
   /* nav active link */
   .nav-links a.active{ color:var(--text-primary); }

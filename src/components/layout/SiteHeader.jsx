@@ -55,6 +55,9 @@ export default function SiteHeader() {
             {link.label}
           </a>
         ))}
+        <Link to="/login" onClick={closeMobile}>
+          تسجيل الدخول
+        </Link>
         <Link className="btn btn-primary" to="/open-store" onClick={closeMobile}>
           انضم إلينا
         </Link>
