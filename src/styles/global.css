@@ -122,8 +122,16 @@
 
   @media (max-width: 940px){
     .nav-links{ display:none; }
-    .nav-toggle{ display:block; }
     .nav-join{ display:none; }
+    /* Pinned with physical `left` (not a logical/RTL-dependent property)
+       against `header`'s own positioning context (it's already
+       `position:sticky`, same trick `.scroll-progress` uses) so the
+       button's screen position is unambiguous regardless of grid/RTL
+       inference — always the phone's actual left edge. */
+    .nav-toggle{
+      display:flex;
+      position:absolute; left:28px; top:50%; transform:translateY(-50%);
+    }
   }
 
   /* ===== Hero ===== */
@@ -464,13 +472,13 @@
   .mobile-panel.open a:nth-child(2){ transition-delay: .09s; }
   .mobile-panel.open a:nth-child(3){ transition-delay: .12s; }
   .mobile-panel.open a:nth-child(4){ transition-delay: .15s; }
+  .mobile-panel.open a:nth-child(5){ transition-delay: .18s; }
+  .mobile-panel.open a:nth-child(6){ transition-delay: .21s; }
+  .mobile-panel.open a:nth-child(7){ transition-delay: .24s; }
+  .mobile-panel.open a:nth-child(8){ transition-delay: .27s; }
 
   @media (prefers-reduced-motion: reduce){
     .mobile-panel, .mobile-panel.open, .mobile-panel a{ transition:none !important; }
-  }
-
-  @media (max-width: 940px){
-    .nav-toggle{ display:flex; }
   }
 
   /* nav active link */
