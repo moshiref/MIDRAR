@@ -33,7 +33,7 @@ export const PACKAGES = [
     order: 1,
     usdTarget: 200,
     sypTarget: 26000,
-    commissionRate: 10,
+    commissionRate: 15,
     templateCount: 20,
     failedDeliveryQuota: 3,
     benefits: [
@@ -43,7 +43,7 @@ export const PACKAGES = [
       'إدارة الطلبات والتوصيل والأرباح الأساسية.',
       'تقارير مبيعات وأرباح أساسية.',
       '3 حالات فشل تسليم مؤهلة شهريًا.',
-      'عمولة 10% من ربح التاجر على الطلبات اللاحقة.',
+      'عمولة 15% من ربح التاجر على الطلبات اللاحقة.',
     ],
   },
   {
@@ -52,7 +52,7 @@ export const PACKAGES = [
     order: 2,
     usdTarget: 500,
     sypTarget: 65000,
-    commissionRate: 12,
+    commissionRate: 13,
     templateCount: 25,
     failedDeliveryQuota: 5,
     benefits: [
@@ -61,7 +61,7 @@ export const PACKAGES = [
       'عروض وكوبونات أكثر تقدمًا ضمن سياسة الحد الأدنى للبيع.',
       'أولوية دعم أعلى.',
       '5 حالات فشل تسليم مؤهلة شهريًا.',
-      'عمولة 12%.',
+      'عمولة 13%.',
     ],
   },
   {
@@ -70,7 +70,7 @@ export const PACKAGES = [
     order: 3,
     usdTarget: 1500,
     sypTarget: 195000,
-    commissionRate: 15,
+    commissionRate: 11,
     templateCount: 30,
     failedDeliveryQuota: 8,
     benefits: [
@@ -79,7 +79,7 @@ export const PACKAGES = [
       'تحليلات أداء ومبيعات أكثر تفصيلًا.',
       'أهلية للترشيح في فرص إبراز المتجر، بدون ضمان.',
       '8 حالات فشل تسليم مؤهلة شهريًا.',
-      'عمولة 15%.',
+      'عمولة 11%.',
     ],
   },
   {
@@ -88,7 +88,7 @@ export const PACKAGES = [
     order: 4,
     usdTarget: 3000,
     sypTarget: 390000,
-    commissionRate: 20,
+    commissionRate: 9,
     templateCount: 'جميع القوالب المميزة المعتمدة',
     failedDeliveryQuota: 12,
     benefits: [
@@ -98,7 +98,7 @@ export const PACKAGES = [
       'حملات اختيارية.',
       'تجربة المزايا الجديدة.',
       '12 حالة فشل تسليم مؤهلة شهريًا.',
-      'عمولة 20%.',
+      'عمولة 9%.',
     ],
   },
 ];

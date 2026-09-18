@@ -5,7 +5,7 @@ import { useWizardForm } from '../../components/forms/useWizardForm';
 import { ProgressBar, TextField, SelectField, ChoiceGroup, TagSelect, StepActions, SuccessCard } from '../../components/forms/WizardFields';
 import PartnerTermsSection, { PARTNER_TERMS_VERSION } from '../../components/forms/PartnerTermsSection';
 import { genRef, saveApplication } from '../../lib/applicationsStorage';
-import './OpenStorePage.css';
+import '../../components/forms/wizardPage.css';
 
 /**
  * The /open-store flow: a merchant "open your store" application wizard
@@ -314,7 +314,7 @@ export default function OpenStorePage() {
   const copy = ROUTE_COPY[route];
 
   return (
-    <div className="open-store-page">
+    <div className="wizard-page">
       <header>
         <div className="nav">
           <Logo />

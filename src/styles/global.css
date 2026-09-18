@@ -361,6 +361,28 @@
   .panel-supplier .feature-list li{ color: var(--text-secondary); }
   .feature-list li svg{ flex-shrink:0; }
 
+  /* Standalone single-panel variant of .panel.panel-merchant — same
+     light-on-dark text treatment, just centered as one full-width
+     banner instead of a .split 2-column child, and its own background
+     matching the floating join CTA's gradient (see .floating-join-cta). */
+  .logistics-panel{
+    max-width: 760px; margin-inline:auto; text-align:center;
+    display:flex; flex-direction:column; align-items:center;
+    background: linear-gradient(135deg, var(--brand-teal-bright), var(--brand-blue));
+  }
+  .logistics-panel .icon{ position:relative; z-index:1; margin-bottom:22px; }
+  .logistics-panel .panel-tag{
+    position:relative; z-index:1;
+    background: rgba(255,255,255,0.2); color:#fff;
+  }
+  .logistics-panel p.desc{ max-width:560px; margin-inline:auto; color: rgba(255,255,255,0.85); }
+  .logistics-panel strong{ color:#fff; }
+  /* "انضم كشريك لوجستي" always shows its .btn-ghost-inverse:hover look
+     (solid white border + faint white fill), not just on interaction —
+     scoped to this one button, doesn't touch ghost-inverse buttons
+     elsewhere on the site. */
+  .logistics-panel .btn-ghost-inverse{ border-color:#fff; background: rgba(255,255,255,0.06); }
+
   /* ===== Final CTA ===== */
   .final-cta{
     background: var(--brand-navy-deep);
@@ -489,7 +511,13 @@
   }
   .mobile-panel a{ padding:13px 4px; font-size:0.98rem; color:var(--text-secondary); font-weight:600; border-bottom:1px solid var(--border-default); }
   .mobile-panel .btn{ margin-top:14px; border-bottom:none; }
-  .mobile-panel .btn-primary{ color:#fff; }
+  .mobile-panel .btn-primary{
+    color:#fff;
+    background: linear-gradient(135deg, var(--brand-teal-bright), var(--brand-blue));
+  }
+  .mobile-panel .btn-primary:hover{
+    background: linear-gradient(135deg, var(--brand-teal), var(--brand-blue-deep));
+  }
 
   /* Soft cascading reveal for the panel's own links, on top of the panel's slide-down */
   .mobile-panel a{ opacity:0; transform: translateY(-6px); transition: opacity .28s ease, transform .28s ease; }
@@ -697,39 +725,6 @@
   .btn{ will-change: transform; }
 
   /* ===== Merchant plans ("باقات التجار") ===== */
-  .plans-intro{ max-width:620px; margin-inline:auto; margin-top:12px; }
-  .plans-note{ margin-top:18px; }
-
-  /* "باقتك الحالية" demo panel */
-  .current-package-panel{
-    max-width: 760px; margin: 36px auto 0; text-align:start;
-    background: linear-gradient(180deg, rgba(16,183,160,0.05), var(--surface) 140px);
-    border:1.5px solid var(--brand-teal); border-radius: var(--radius-lg);
-    padding: 28px 26px; box-shadow: var(--shadow-2);
-  }
-  .current-package-tag{
-    display:inline-flex; align-items:center; font-size:0.74rem; font-weight:700; color: var(--brand-teal-deep);
-    background: rgba(16,183,160,0.12); padding:5px 12px; border-radius:999px; margin-bottom:14px;
-  }
-  .current-package-head{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px; }
-  .current-package-head h3{ font-size:1.3rem; }
-  .current-package-status{
-    font-size:0.8rem; font-weight:700; color: var(--success);
-    background: rgba(23,146,95,0.09); padding:5px 12px; border-radius:999px;
-  }
-  .current-package-sales{ margin-top:4px; }
-  .current-package-progress{ margin-top:18px; }
-  .progress-label-row{ display:flex; justify-content:space-between; font-size:0.82rem; font-weight:700; color:var(--text-primary); margin-bottom:8px; }
-  .plan-progress-track{ width:100%; height:10px; border-radius:999px; background: var(--surface-subtle); overflow:hidden; }
-  .plan-progress-fill{ height:100%; border-radius:999px; background: linear-gradient(90deg, var(--brand-teal), var(--brand-blue)); transition: width .4s ease; }
-  .current-package-remaining{ margin-top:10px; font-size:0.84rem; color:var(--text-secondary); }
-  .current-package-benefits{ margin-top:22px; padding-top:18px; border-top:1px solid var(--border-default); }
-  .current-package-benefits h4{ font-size:0.92rem; margin-bottom:10px; }
-  @media (max-width:600px){
-    .current-package-panel{ padding:22px 18px; }
-    .current-package-head{ flex-direction:column; align-items:flex-start; }
-  }
-
   .plans-grid{
     display:flex; gap:16px; overflow-x:auto; scroll-snap-type:x proximity;
     padding-bottom:10px; margin-top:48px; scroll-padding-inline:28px;
@@ -773,14 +768,6 @@
   .plan-example .row .v{ font-weight:800; font-family:var(--font-en); direction:ltr; color:var(--text-primary); }
   .plan-example .row.total{ grid-column:1/-1; border-top:1px dashed var(--border-strong); padding-top:10px; margin-top:2px; }
   .plan-example .row.total .v{ color:var(--brand-teal-deep); }
-
-  .plan-info-grid{ display:grid; grid-template-columns: repeat(2,1fr); gap:18px; margin-top:52px; }
-  @media (max-width:860px){ .plan-info-grid{ grid-template-columns:1fr; } }
-  .plan-info-card h4{ font-size:1rem; margin-bottom:10px; }
-  .plan-info-card p{ font-size:0.88rem; color:var(--text-secondary); margin-bottom:6px; }
-  .plan-info-card ul{ display:flex; flex-direction:column; gap:8px; margin-top:12px; }
-  .plan-info-card ul li{ display:flex; align-items:flex-start; gap:8px; font-size:0.85rem; color:var(--text-secondary); line-height:1.55; }
-  .plan-info-card ul li svg{ flex-shrink:0; margin-top:3px; }
 
   .plans-cta{ text-align:center; margin-top:52px; }
   .plans-cta p{ margin-bottom:20px; color:var(--text-secondary); }
