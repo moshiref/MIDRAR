@@ -73,6 +73,21 @@
 .wizard-page .progress-labels{ display:flex; justify-content:space-between; margin-bottom:6px; }
 .wizard-page .progress-labels span{ font-size:0.78rem; color:var(--text-muted); font-weight:600; }
 .wizard-page .progress-labels span.current{ color:var(--brand-navy); }
+/* Bars with many steps (e.g. the 7-step logistics-partner wizard) crowd
+   onto one line on phone widths and overlap; :has(span:nth-child(6))
+   scopes this to only those bars, leaving shorter 3-4 step bars
+   (/open-store) untouched. */
+@media (max-width:640px){
+  .wizard-page .progress-labels:has(span:nth-child(6)){
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 6px;
+    column-gap: 12px;
+  }
+  .wizard-page .progress-labels:has(span:nth-child(6)) span{
+    font-size: 0.7rem;
+  }
+}
 
 .wizard-page .form-card{ background:var(--surface); border:1px solid var(--border-default); border-radius:var(--radius-lg); box-shadow:var(--shadow-2); padding:36px 34px; }
 .wizard-page .form-step{ display:none; }

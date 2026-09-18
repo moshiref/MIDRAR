@@ -164,6 +164,7 @@
     background: linear-gradient(95deg, var(--brand-teal) 8%, var(--brand-blue) 85%);
     -webkit-background-clip:text; background-clip:text; color:transparent;
   }
+
   .hero-copy p{ max-width: 500px; margin-bottom: 36px; }
   .hero-actions{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:44px; }
   .hero-proof{ display:flex; align-items:center; gap:22px; }
