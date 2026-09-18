@@ -118,20 +118,19 @@
   .nav-actions{ display:flex; align-items:center; gap:14px; justify-self:end; }
   .nav-actions .btn{ padding: 11px 22px; font-size:0.92rem; }
   .nav-join{ color:var(--text-secondary); font-weight:600; font-size:0.92rem; padding:10px 8px; }
-  .nav-toggle{ display:none; }
+  /* .nav-toggle's own display/visibility rules live in one place only —
+     see the "Mobile nav" section below (base `display:none` there, mobile
+     override right after it). A second, later `display:none` used to
+     live there too and silently beat this file's own mobile override on
+     source order (both were plain `.nav-toggle` selectors — equal
+     specificity, last one in the stylesheet wins) even while the media
+     query matched. That's why the button never actually appeared on
+     phones no matter what the override said. Don't redeclare
+     `.nav-toggle{ display: ... }` anywhere else. */
 
   @media (max-width: 940px){
     .nav-links{ display:none; }
     .nav-join{ display:none; }
-    /* Pinned with physical `left` (not a logical/RTL-dependent property)
-       against `header`'s own positioning context (it's already
-       `position:sticky`, same trick `.scroll-progress` uses) so the
-       button's screen position is unambiguous regardless of grid/RTL
-       inference — always the phone's actual left edge. */
-    .nav-toggle{
-      display:flex;
-      position:absolute; left:28px; top:50%; transform:translateY(-50%);
-    }
   }
 
   /* ===== Hero ===== */
@@ -449,21 +448,48 @@
   .nav-toggle.open span::before{ transform: translateY(6px) rotate(45deg); }
   .nav-toggle.open span::after{ transform: translateY(-6px) rotate(-45deg); }
 
+  @media (max-width: 940px){
+    /* Pinned with physical `left` (not a logical/RTL-dependent property)
+       against `header`'s own positioning context (it's already
+       `position:sticky`, same trick `.scroll-progress` uses) so the
+       button's screen position is unambiguous regardless of grid/RTL
+       inference — always the phone's actual left edge. This MUST come
+       after the base `.nav-toggle{ display:none; ... }` rule above in
+       source order — equal-specificity `display` declarations resolve
+       by source order, not by which one is "inside a media query". */
+    .nav-toggle{
+      display:flex;
+      position:absolute; left:28px; top:50%; transform:translateY(-50%);
+    }
+  }
+
   .mobile-panel{
+    /* Taken out of `header`'s normal flow on purpose: while it was a
+       flow child, opening it made `header`'s own box as tall as the
+       whole dropdown, and a very tall `position:sticky` element behaves
+       unpredictably once you scroll the page past its own height — that
+       was why the toggle button could scroll out of view with the menu
+       open. Positioned here instead, directly under the (always short)
+       navbar row, `header` never grows, so the sticky nav bar + toggle
+       button stay trivially pinned at the top no matter what. */
+    position:absolute; inset-inline:0; top:100%;
     display:flex; flex-direction:column; gap:2px; padding: 0 28px;
     border-top:1px solid transparent; background: var(--background);
-    max-height:0; overflow:hidden; visibility:hidden; opacity:0; transform: translateY(-8px);
+    max-height:0; overflow-y:auto; overflow-x:hidden; visibility:hidden; opacity:0; transform: translateY(-8px);
     transition: max-height .4s cubic-bezier(.4,0,.2,1), opacity .28s ease, transform .32s cubic-bezier(.2,.8,.2,1),
       padding .4s cubic-bezier(.4,0,.2,1), border-color .4s ease, visibility 0s linear .4s;
   }
   .mobile-panel.open{
-    max-height: 560px; padding: 10px 28px 22px;
+    max-height: min(70vh, 560px); padding: 10px 28px 22px;
     border-top-color: var(--border-default);
+    box-shadow: var(--shadow-2);
     visibility:visible; opacity:1; transform: translateY(0);
     transition: max-height .4s cubic-bezier(.4,0,.2,1), opacity .32s ease .05s, transform .36s cubic-bezier(.2,.8,.2,1) .05s,
       padding .4s cubic-bezier(.4,0,.2,1), border-color .4s ease, visibility 0s linear;
   }
   .mobile-panel a{ padding:13px 4px; font-size:0.98rem; color:var(--text-secondary); font-weight:600; border-bottom:1px solid var(--border-default); }
+  .mobile-panel .btn{ margin-top:14px; border-bottom:none; }
+  .mobile-panel .btn-primary{ color:#fff; }
 
   /* Soft cascading reveal for the panel's own links, on top of the panel's slide-down */
   .mobile-panel a{ opacity:0; transform: translateY(-6px); transition: opacity .28s ease, transform .28s ease; }
@@ -674,6 +700,36 @@
   .plans-intro{ max-width:620px; margin-inline:auto; margin-top:12px; }
   .plans-note{ margin-top:18px; }
 
+  /* "باقتك الحالية" demo panel */
+  .current-package-panel{
+    max-width: 760px; margin: 36px auto 0; text-align:start;
+    background: linear-gradient(180deg, rgba(16,183,160,0.05), var(--surface) 140px);
+    border:1.5px solid var(--brand-teal); border-radius: var(--radius-lg);
+    padding: 28px 26px; box-shadow: var(--shadow-2);
+  }
+  .current-package-tag{
+    display:inline-flex; align-items:center; font-size:0.74rem; font-weight:700; color: var(--brand-teal-deep);
+    background: rgba(16,183,160,0.12); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+  }
+  .current-package-head{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px; }
+  .current-package-head h3{ font-size:1.3rem; }
+  .current-package-status{
+    font-size:0.8rem; font-weight:700; color: var(--success);
+    background: rgba(23,146,95,0.09); padding:5px 12px; border-radius:999px;
+  }
+  .current-package-sales{ margin-top:4px; }
+  .current-package-progress{ margin-top:18px; }
+  .progress-label-row{ display:flex; justify-content:space-between; font-size:0.82rem; font-weight:700; color:var(--text-primary); margin-bottom:8px; }
+  .plan-progress-track{ width:100%; height:10px; border-radius:999px; background: var(--surface-subtle); overflow:hidden; }
+  .plan-progress-fill{ height:100%; border-radius:999px; background: linear-gradient(90deg, var(--brand-teal), var(--brand-blue)); transition: width .4s ease; }
+  .current-package-remaining{ margin-top:10px; font-size:0.84rem; color:var(--text-secondary); }
+  .current-package-benefits{ margin-top:22px; padding-top:18px; border-top:1px solid var(--border-default); }
+  .current-package-benefits h4{ font-size:0.92rem; margin-bottom:10px; }
+  @media (max-width:600px){
+    .current-package-panel{ padding:22px 18px; }
+    .current-package-head{ flex-direction:column; align-items:flex-start; }
+  }
+
   .plans-grid{
     display:flex; gap:16px; overflow-x:auto; scroll-snap-type:x proximity;
     padding-bottom:10px; margin-top:48px; scroll-padding-inline:28px;
@@ -685,12 +741,6 @@
     padding:26px 22px; box-shadow: var(--shadow-2); transition: box-shadow .25s ease, transform .2s ease, border-color .2s ease;
   }
   .plan-card:hover{ box-shadow: var(--shadow-3); transform: translateY(-4px); }
-  .plan-card.is-free{ border-color: var(--brand-teal); box-shadow: 0 0 0 1px var(--brand-teal), var(--shadow-2); }
-  .plan-card.is-free:hover{ box-shadow: 0 0 0 1px var(--brand-teal), var(--shadow-3); }
-  .plan-card .plan-badge{
-    align-self:flex-start; font-size:0.74rem; font-weight:700; color: var(--brand-teal-deep);
-    background: rgba(16,183,160,0.12); padding:5px 12px; border-radius:999px; margin-bottom:14px;
-  }
   .plan-card h3{ font-size:1.15rem; margin-bottom:6px; }
   .plan-card .plan-access{ font-size:0.8rem; color:var(--text-muted); margin-bottom:18px; min-height:34px; }
   .plan-stats{ display:flex; flex-direction:column; gap:9px; padding:14px 0; border-block:1px solid var(--border-default); margin-bottom:18px; }

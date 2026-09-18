@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import ScrollToTop from './components/common/ScrollToTop';
 import PublicLayout from './components/layout/PublicLayout';
 import LandingPage from './features/landing/LandingPage';
 import OpenStorePage from './features/open-store/OpenStorePage';
@@ -29,6 +30,7 @@ import SupplierPagePlaceholder from './features/supplier/SupplierPagePlaceholder
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         <Route element={<PublicLayout />}>
           <Route path="/" element={<LandingPage />} />

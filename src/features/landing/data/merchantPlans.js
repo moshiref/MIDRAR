@@ -1,120 +1,107 @@
 /**
- * Merchant plan tiers, shown in the landing page's "باقات التجار" section
+ * Central package config for MIDRAR's merchant tiers, shown in the
+ * landing page's "باقات التجار" section
  * (src/features/landing/components/MerchantPlansSection.jsx). These are
  * free performance tiers that unlock automatically as a merchant's net
- * completed sales grow — never a paid subscription. Kept as one data
- * array, separate from the UI, so it can later be swapped for data
- * fetched from a real backend/admin panel without touching the section's
- * JSX — only this file's shape needs to stay the same:
- * name, salesTargetUsd, salesTargetSyp, commissionRate, templates,
- * failedDeliveryCoverage, features, description.
+ * completed sales grow — never a paid subscription, no downgrade, no
+ * monthly reset.
+ *
+ * Kept as one data array, separate from both the UI and the business
+ * logic (see packageLogic.js in this folder), so it can later be
+ * swapped for data fetched from a real backend/admin panel without
+ * touching either. Field shape is deliberately close to what an
+ * eventual `packageConfig` API resource would return:
+ *   id, name, order, usdTarget, sypTarget, commissionRate,
+ *   templateCount, failedDeliveryQuota, benefits
+ * `templateCount` is a number for basic/silver/gold, but a descriptive
+ * string for diamond ("جميع القوالب المميزة المعتمدة") — that's the
+ * actual spec, not a bug; render code should treat it as display text,
+ * not assume it's always numeric.
+ *
+ * When a future admin panel can edit these values, each entry here is
+ * the *current* value only — an audit trail (effective date, previous
+ * value, new value, changed by, reason) would live alongside this array
+ * as separate history records keyed by package id, never overwriting or
+ * deleting prior entries. Not built yet since no admin UI exists to
+ * drive it.
  */
 
-export const MERCHANT_PLANS = [
-  {
-    id: 'eligibility',
-    name: 'الأهلية',
-    isFree: true,
-    badge: 'مجانية',
-    accessLabel: 'من انضمام التاجر وحتى بلوغ الهدف الأول',
-    salesTargetUsd: 0,
-    salesTargetSyp: 0,
-    commissionRate: 0,
-    templates: '20 قالبًا أساسيًا',
-    failedDeliveryCoverage: 0,
-    failedDeliveryCoverageLabel: '0 حالات',
-    description: 'نقطة البداية لكل تاجر ينضم إلى مدرار.',
-    features: [
-      'متجر مستقل باسم وهوية التاجر.',
-      'الوصول إلى المنتجات المعتمدة ونشرها ضمن حدود الأسعار.',
-      '20 قالب متجر أساسيًا، كلها متاحة دون قيد.',
-      'إدارة الطلبات والتوصيل والأرباح الأساسية.',
-      'عمولة صفر من ربح التاجر حتى بلوغ هدف الباقة الأساسية.',
-      'لا تغطي مدرار أي حالة من رسوم فشل التسليم في هذه الباقة.',
-    ],
-  },
+export const PACKAGES = [
   {
     id: 'basic',
     name: 'الأساسية',
-    isFree: false,
-    accessLabel: '200 دولار أو 26,000 ليرة سورية جديدة',
-    salesTargetUsd: 200,
-    salesTargetSyp: 26000,
+    order: 1,
+    usdTarget: 200,
+    sypTarget: 26000,
     commissionRate: 10,
-    templates: '20 قالبًا أساسيًا',
-    failedDeliveryCoverage: 3,
-    failedDeliveryCoverageLabel: '3 حالات شهريًا',
-    description: 'أول مستوى يفتح تلقائيًا بعد أول مبيعات مكتملة.',
-    features: [
-      'جميع مزايا الأهلية.',
+    templateCount: 20,
+    failedDeliveryQuota: 3,
+    benefits: [
+      'متجر مستقل باسم وهوية التاجر.',
+      'الوصول إلى المنتجات المعتمدة ونشرها ضمن حدود الأسعار.',
+      '20 قالب متجر أساسيًا.',
+      'إدارة الطلبات والتوصيل والأرباح الأساسية.',
       'تقارير مبيعات وأرباح أساسية.',
-      'تغطية رسوم 3 حالات فشل تسليم مؤهلة شهريًا.',
+      '3 حالات فشل تسليم مؤهلة شهريًا.',
       'عمولة 10% من ربح التاجر على الطلبات اللاحقة.',
     ],
   },
   {
     id: 'silver',
     name: 'الفضية',
-    isFree: false,
-    accessLabel: '500 دولار أو 65,000 ليرة سورية جديدة',
-    salesTargetUsd: 500,
-    salesTargetSyp: 65000,
+    order: 2,
+    usdTarget: 500,
+    sypTarget: 65000,
     commissionRate: 12,
-    templates: '25 قالبًا',
-    failedDeliveryCoverage: 5,
-    failedDeliveryCoverageLabel: '5 حالات شهريًا',
-    description: 'قوالب إضافية وأدوات عروض أكثر تقدمًا.',
-    features: [
+    templateCount: 25,
+    failedDeliveryQuota: 5,
+    benefits: [
       'جميع مزايا الأساسية.',
-      '5 قوالب إضافية، ليصبح الإجمالي 25 قالبًا.',
-      'أدوات عروض وكوبونات أكثر تقدمًا ضمن سياسة الحد الأدنى للبيع.',
-      'أولوية دعم أعلى من الباقات السابقة.',
-      'تغطية رسوم 5 حالات فشل تسليم مؤهلة شهريًا.',
-      'عمولة 12% من ربح التاجر.',
+      '5 قوالب إضافية = 25 قالبًا.',
+      'عروض وكوبونات أكثر تقدمًا ضمن سياسة الحد الأدنى للبيع.',
+      'أولوية دعم أعلى.',
+      '5 حالات فشل تسليم مؤهلة شهريًا.',
+      'عمولة 12%.',
     ],
   },
   {
     id: 'gold',
     name: 'الذهبية',
-    isFree: false,
-    accessLabel: '1,500 دولار أو 195,000 ليرة سورية جديدة',
-    salesTargetUsd: 1500,
-    salesTargetSyp: 195000,
+    order: 3,
+    usdTarget: 1500,
+    sypTarget: 195000,
     commissionRate: 15,
-    templates: '30 قالبًا',
-    failedDeliveryCoverage: 8,
-    failedDeliveryCoverageLabel: '8 حالات شهريًا',
-    description: 'تحليلات أعمق وفرص إبراز داخل المنصة.',
-    features: [
+    templateCount: 30,
+    failedDeliveryQuota: 8,
+    benefits: [
       'جميع مزايا الفضية.',
-      '5 قوالب إضافية، ليصبح الإجمالي 30 قالبًا.',
+      '5 قوالب إضافية = 30 قالبًا.',
       'تحليلات أداء ومبيعات أكثر تفصيلًا.',
-      'أهلية للترشيح في فرص إبراز المتجر التي تديرها مدرار؛ الإبراز ليس مضمونًا تلقائيًا.',
-      'تغطية رسوم 8 حالات فشل تسليم مؤهلة شهريًا.',
-      'عمولة 15% من ربح التاجر.',
+      'أهلية للترشيح في فرص إبراز المتجر، بدون ضمان.',
+      '8 حالات فشل تسليم مؤهلة شهريًا.',
+      'عمولة 15%.',
     ],
   },
   {
     id: 'diamond',
     name: 'الماسية',
-    isFree: false,
-    accessLabel: '3,000 دولار أو 390,000 ليرة سورية جديدة',
-    salesTargetUsd: 3000,
-    salesTargetSyp: 390000,
+    order: 4,
+    usdTarget: 3000,
+    sypTarget: 390000,
     commissionRate: 20,
-    templates: 'جميع القوالب المميزة المعتمدة',
-    failedDeliveryCoverage: 12,
-    failedDeliveryCoverageLabel: '12 حالة شهريًا',
-    description: 'أعلى مستوى، بأولوية دعم وتجربة مزايا جديدة.',
-    features: [
+    templateCount: 'جميع القوالب المميزة المعتمدة',
+    failedDeliveryQuota: 12,
+    benefits: [
       'جميع مزايا الذهبية.',
-      'الوصول إلى جميع القوالب المميزة المعتمدة.',
-      'أولوية أعلى للدعم والحملات الاختيارية وتجربة المزايا الجديدة.',
-      'تغطية رسوم 12 حالة فشل تسليم مؤهلة شهريًا.',
-      'عمولة 20% من ربح التاجر.',
+      'جميع القوالب المميزة المعتمدة.',
+      'أولوية أعلى للدعم.',
+      'حملات اختيارية.',
+      'تجربة المزايا الجديدة.',
+      '12 حالة فشل تسليم مؤهلة شهريًا.',
+      'عمولة 20%.',
     ],
   },
 ];
 
 /** Visual tile-color progression for the growth-path nodes — src/styles/global.css's `.tile3d` variants, one per tier. */
-export const PLAN_TILE_COLORS = ['glass', 'teal', 'blue', 'navy', 'mint'];
+export const PLAN_TILE_COLORS = ['teal', 'blue', 'navy', 'mint'];
