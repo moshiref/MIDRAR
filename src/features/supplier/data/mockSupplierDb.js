@@ -657,4 +657,14 @@ export async function getCategoryProductCounts(supplierId) {
   return counts;
 }
 
+// There is no admin panel yet to author these campaigns, so this always
+// resolves to "nothing published" — that's the honest current state, not
+// a placeholder value. Once an admin-side tool exists to manage supplier
+// ads, this is the one function to swap for a real fetch; the shape below
+// (message/imageUrl/ctaLabel/ctaUrl) is what SupplierAdBanner already
+// expects, so no UI changes will be needed when that day comes.
+export async function getSupplierBanner() {
+  return { message: null, imageUrl: null, ctaLabel: null, ctaUrl: null };
+}
+
 export { SEED_SUPPLIER_ID };

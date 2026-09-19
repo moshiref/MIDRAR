@@ -1,8 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { X, ChevronRight, ChevronLeft } from 'lucide-react';
+import { X, ChevronRight, ChevronLeft, Search } from 'lucide-react';
 import { useSupplierSession } from '../session/SupplierSessionContext';
-import { getProducts, addProduct, updateProduct, deleteProduct, getCategories } from '../data/mockSupplierDb';
+import { getProducts, addProduct, updateProduct, deleteProduct, getCategories, getOrders } from '../data/mockSupplierDb';
+
+const SORT_OPTIONS = [
+  { value: 'default', label: 'الأحدث' },
+  { value: 'price-desc', label: 'السعر: من الأعلى للأقل' },
+  { value: 'price-asc', label: 'السعر: من الأقل للأعلى' },
+  { value: 'most-ordered', label: 'الأكثر طلبًا' },
+  { value: 'least-ordered', label: 'الأقل طلبًا' },
+];
+const EMPTY_FILTERS = { search: '', priceMin: '', priceMax: '', sortBy: 'default' };
 
 function showToast(message) {
   if (typeof window.showToast === 'function') window.showToast(message);
@@ -21,18 +30,26 @@ function totalStock(product) {
 function firstCost(product) {
   return product.variants[0]?.supplyPrice?.amount ?? 0;
 }
+function firstSuggestedPrice(product) {
+  return product.variants[0]?.suggestedPrice?.amount ?? firstCost(product);
+}
+function firstMinPrice(product) {
+  return product.variants[0]?.minPrice?.amount ?? firstCost(product);
+}
 function thumbGradient(productId) {
   let hash = 0;
   for (let i = 0; i < productId.length; i += 1) hash = (hash + productId.charCodeAt(i)) % THUMB_GRADIENTS.length;
   return THUMB_GRADIENTS[hash];
 }
 
-const EMPTY_FORM = { name: '', description: '', cost: '50', stock: '10', categoryId: '' };
+const EMPTY_FORM = { name: '', description: '', cost: '50', suggestedPrice: '', stock: '10', minPrice: '', categoryId: '' };
 
 export default function SupplierProductsPage() {
   const { supplier, employee } = useSupplierSession();
   const [products, setProducts] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [drawerMode, setDrawerMode] = useState(null); // 'add' | 'edit'
   const [editingProduct, setEditingProduct] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -47,9 +64,10 @@ export default function SupplierProductsPage() {
   const [missingImageError, setMissingImageError] = useState('');
 
   const reload = async () => {
-    const [productList, categoryList] = await Promise.all([getProducts(supplier.id), getCategories(supplier.id)]);
+    const [productList, categoryList, orderList] = await Promise.all([getProducts(supplier.id), getCategories(supplier.id), getOrders(supplier.id)]);
     setProducts(productList);
     setCategories(categoryList);
+    setOrders(orderList);
   };
 
   useEffect(() => {
@@ -75,7 +93,9 @@ export default function SupplierProductsPage() {
       name: product.name,
       description: product.description ?? '',
       cost: String(firstCost(product)),
+      suggestedPrice: String(firstSuggestedPrice(product)),
       stock: String(totalStock(product)),
+      minPrice: String(firstMinPrice(product)),
       categoryId: product.categoryId ?? '',
     });
     resetUploadState();
@@ -131,7 +151,9 @@ export default function SupplierProductsPage() {
       return;
     }
     const cost = Number(form.cost) || 0;
+    const suggestedPrice = Number(form.suggestedPrice) || cost;
     const stock = Number(form.stock) || 0;
+    const minPrice = Number(form.minPrice) || cost;
     setSaving(true);
     try {
       if (drawerMode === 'add') {
@@ -147,8 +169,8 @@ export default function SupplierProductsPage() {
           status: 'pending',
           variants: [{
             supplyPrice: { amount: cost, currency: 'USD' },
-            minPrice: { amount: cost, currency: 'USD' },
-            suggestedPrice: { amount: cost, currency: 'USD' },
+            minPrice: { amount: minPrice, currency: 'USD' },
+            suggestedPrice: { amount: suggestedPrice, currency: 'USD' },
             prepDays: 0,
             location: '',
             stock: { actual: stock, reserved: 0 },
@@ -159,7 +181,7 @@ export default function SupplierProductsPage() {
       } else {
         const updatedVariants = editingProduct.variants.map((v, i) => (
           i === 0
-            ? { ...v, supplyPrice: { amount: cost, currency: 'USD' }, stock: { ...v.stock, actual: stock } }
+            ? { ...v, supplyPrice: { amount: cost, currency: 'USD' }, suggestedPrice: { amount: suggestedPrice, currency: 'USD' }, minPrice: { amount: minPrice, currency: 'USD' }, stock: { ...v.stock, actual: stock } }
             : v
         ));
         await updateProduct({
@@ -186,6 +208,32 @@ export default function SupplierProductsPage() {
   };
 
   const categoryName = (id) => categories.find((c) => c.id === id)?.name;
+
+  const orderCounts = useMemo(() => {
+    const counts = {};
+    orders.forEach((o) => (o.items ?? []).forEach((it) => { counts[it.productId] = (counts[it.productId] ?? 0) + (it.qty ?? 0); }));
+    return counts;
+  }, [orders]);
+
+  const filteredProducts = useMemo(() => {
+    if (!products) return [];
+    let list = products;
+    const q = filters.search.trim().toLowerCase();
+    if (q) list = list.filter((p) => p.name.toLowerCase().includes(q));
+    const min = filters.priceMin !== '' ? Number(filters.priceMin) : null;
+    const max = filters.priceMax !== '' ? Number(filters.priceMax) : null;
+    if (min !== null && !Number.isNaN(min)) list = list.filter((p) => firstCost(p) >= min);
+    if (max !== null && !Number.isNaN(max)) list = list.filter((p) => firstCost(p) <= max);
+    const sorted = [...list];
+    if (filters.sortBy === 'price-desc') sorted.sort((a, b) => firstCost(b) - firstCost(a));
+    else if (filters.sortBy === 'price-asc') sorted.sort((a, b) => firstCost(a) - firstCost(b));
+    else if (filters.sortBy === 'most-ordered') sorted.sort((a, b) => (orderCounts[b.id] ?? 0) - (orderCounts[a.id] ?? 0));
+    else if (filters.sortBy === 'least-ordered') sorted.sort((a, b) => (orderCounts[a.id] ?? 0) - (orderCounts[b.id] ?? 0));
+    return sorted;
+  }, [products, filters, orderCounts]);
+
+  const hasActiveFilters = filters.search.trim() !== '' || filters.priceMin !== '' || filters.priceMax !== '' || filters.sortBy !== 'default';
+  const clearFilters = () => setFilters(EMPTY_FILTERS);
 
   if (products === null) {
     return (
@@ -214,11 +262,49 @@ export default function SupplierProductsPage() {
           </div>
         ) : (
           <div className="panel">
+            <div className="filters-bar">
+              <div className="field filters-search">
+                <label>بحث بالاسم</label>
+                <div className="search-box">
+                  <Search size={16} strokeWidth={2} />
+                  <input type="text" placeholder="ابحث عن منتج..." value={filters.search} onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))} />
+                </div>
+              </div>
+              <div className="field filters-price">
+                <label>التكلفة من</label>
+                <input type="text" className="en" dir="ltr" placeholder="0" value={filters.priceMin} onChange={(e) => setFilters((f) => ({ ...f, priceMin: e.target.value }))} />
+              </div>
+              <div className="field filters-price">
+                <label>إلى</label>
+                <input type="text" className="en" dir="ltr" placeholder="∞" value={filters.priceMax} onChange={(e) => setFilters((f) => ({ ...f, priceMax: e.target.value }))} />
+              </div>
+              <div className="field filters-sort">
+                <label>ترتيب حسب</label>
+                <select value={filters.sortBy} onChange={(e) => setFilters((f) => ({ ...f, sortBy: e.target.value }))}>
+                  {SORT_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                </select>
+              </div>
+              {hasActiveFilters && (
+                <button type="button" className="btn btn-secondary btn-sm filters-reset" onClick={clearFilters}>إعادة تعيين</button>
+              )}
+            </div>
+            {hasActiveFilters && (
+              <div className="filters-summary">
+                عرض {filteredProducts.length} من {products.length} منتج
+              </div>
+            )}
+            {filteredProducts.length === 0 ? (
+              <div className="empty-state">
+                <div className="title">لا توجد نتائج مطابقة</div>
+                <div className="msg">جرّب تعديل كلمة البحث أو نطاق السعر.</div>
+                <button type="button" className="btn btn-secondary btn-sm" style={{ marginTop: 8 }} onClick={clearFilters}>إعادة تعيين الفلاتر</button>
+              </div>
+            ) : (
             <div className="table-wrap">
               <table>
                 <thead><tr><th>المنتج</th><th>القسم</th><th className="num">التكلفة</th><th className="num">المخزون</th><th>الحالة</th><th /></tr></thead>
                 <tbody>
-                  {products.map((p) => (
+                  {filteredProducts.map((p) => (
                     <tr key={p.id}>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -249,6 +335,7 @@ export default function SupplierProductsPage() {
                 </tbody>
               </table>
             </div>
+            )}
           </div>
         )}
       </section>
@@ -266,13 +353,21 @@ export default function SupplierProductsPage() {
               <label>اسم المنتج</label>
               <input type="text" placeholder="مثال: كرسي مكتب دوّار" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
             </div>
-            <div className="field">
-              <label>التكلفة</label>
+            <div className="field full">
+              <label>سعر الجملة</label>
               <input type="text" className="en" dir="ltr" value={form.cost} onChange={(e) => setForm((f) => ({ ...f, cost: e.target.value }))} />
             </div>
-            <div className="field">
+            <div className="field full">
+              <label>السعر المقترح للمبيع</label>
+              <input type="text" className="en" dir="ltr" placeholder={form.cost} value={form.suggestedPrice} onChange={(e) => setForm((f) => ({ ...f, suggestedPrice: e.target.value }))} />
+            </div>
+            <div className="field full">
               <label>المخزون المتاح</label>
               <input type="text" className="en" dir="ltr" value={form.stock} onChange={(e) => setForm((f) => ({ ...f, stock: e.target.value }))} />
+            </div>
+            <div className="field full">
+              <label>الحد الأدنى للمبيع</label>
+              <input type="text" className="en" dir="ltr" placeholder={form.cost} value={form.minPrice} onChange={(e) => setForm((f) => ({ ...f, minPrice: e.target.value }))} />
             </div>
             <div className="field full">
               <label>القسم</label>
@@ -291,6 +386,20 @@ export default function SupplierProductsPage() {
             <div className="field full">
               <label>الوصف</label>
               <textarea rows={3} placeholder="وصف مختصر للمنتج ومواصفاته" value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
+            </div>
+
+            <div className="tip-box" style={{ gridColumn: '1/-1' }}>
+              <div>
+                <div className="t">نصيحة لعرض المنتج</div>
+                <div className="s">أبرز المنتج بشكل واضح دون أي مشتتات خارجية، وأبرز التفاصيل المهمة. وإذا كان المنتج صغيرًا، يُفضّل تصويره على خلفية بيضاء ومن عدة جهات.</div>
+              </div>
+            </div>
+
+            <div className="tip-box danger" style={{ gridColumn: '1/-1' }}>
+              <div>
+                <div className="t">تنبيه</div>
+                <div className="s">يمنع اظهار وسائل التواصل بجميع أنواعها داخل الصور أو الفيديوهات. احرص على عدم اظهار رقم تواصل أو الأسم التجاري أو شعار أو عنوان أو أي دلالات قد تعرض الحساب للتوقيف.</div>
+              </div>
             </div>
 
             <div className="field full">
@@ -325,13 +434,6 @@ export default function SupplierProductsPage() {
                 </div>
               )}
               {missingImageError && <span className="field-error">{missingImageError}</span>}
-            </div>
-
-            <div className="tip-box" style={{ gridColumn: '1/-1' }}>
-              <div>
-                <div className="t">نصيحة لعرض المنتج</div>
-                <div className="s">أبرز المنتج بشكل واضح دون أي مشتتات خارجية، وأبرز التفاصيل المهمة. وإذا كان المنتج صغيرًا، يُفضّل تصويره على خلفية بيضاء ومن عدة جهات.</div>
-              </div>
             </div>
 
             <div className="field full">

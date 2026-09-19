@@ -2,6 +2,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useSupplierSession } from '../../features/supplier/session/SupplierSessionContext';
 import { SkeletonRows } from '../../features/supplier/ui/Skeleton';
+import SupplierAdBanner from '../../features/supplier/ui/SupplierAdBanner';
 import logoMark from '../../assets/logo-mark.png';
 import '../../features/supplier/supplierExact.css';
 
@@ -178,6 +179,8 @@ export default function SupplierLayout() {
               </div>
             </div>
           </div>
+
+          <SupplierAdBanner />
 
           <div className="content">
             <Suspense fallback={<SkeletonRows rows={6} />}>
