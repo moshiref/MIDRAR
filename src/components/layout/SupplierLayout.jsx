@@ -155,13 +155,13 @@ export default function SupplierLayout() {
             </div>
           </nav>
           <div className="sidebar-footer">
-            <div className="user-chip">
+            <NavLink to="/supplier/settings" onClick={closeSidebar} className="user-chip">
               <div className="avatar en">{initials}</div>
               <div>
                 <div className="uname">{displayName}</div>
                 <div className="urole">{employee?.role === 'owner' ? 'مسؤول المورد' : employee?.role ?? 'مسؤول المورد'}</div>
               </div>
-            </div>
+            </NavLink>
           </div>
         </aside>
         <div className={`sidebar-scrim${sidebarOpen ? ' open' : ''}`} id="sidebarScrim" onClick={closeSidebar} />
@@ -176,9 +176,6 @@ export default function SupplierLayout() {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
                 <input type="text" placeholder="ابحث عن طلب أو منتج..." onKeyDown={(e) => { if (e.key === 'Enter' && e.target.value.trim()) navigate(`/supplier/products?highlight=${encodeURIComponent(e.target.value.trim())}`); }} />
               </div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div className="topbar-avatar en">{initials}</div>
             </div>
           </div>
 
