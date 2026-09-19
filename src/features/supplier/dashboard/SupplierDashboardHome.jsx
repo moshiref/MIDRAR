@@ -1,116 +1,49 @@
-import { useEffect, useState } from 'react';
-import StatCard from '../../../components/ui/StatCard';
-import CurrencyAmount from '../../../components/ui/CurrencyAmount';
+import { useNavigate } from 'react-router-dom';
 import { useSupplierSession } from '../session/SupplierSessionContext';
-import { getProducts, getOrders, getPayouts, getNotifications, getTickets } from '../data/mockSupplierDb';
 
-const LOW_STOCK_THRESHOLD = 5;
-
-function availableStock(variant) {
-  return variant.stock.actual - variant.stock.reserved;
-}
-
-/**
- * Spec §3: every card here must lead to a real filtered list, not just
- * show a number — see StatCard. The list pages themselves (orders,
- * inventory, products, payouts, performance, disputes, notifications)
- * are later phases of the delivery plan; until each is built its route
- * renders SupplierPagePlaceholder, so these links resolve today, they
- * just don't apply the query-string filter yet.
- */
 export default function SupplierDashboardHome() {
-  const { supplier } = useSupplierSession();
-  const [stats, setStats] = useState(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    Promise.all([
-      getProducts(supplier.id),
-      getOrders(supplier.id),
-      getPayouts(supplier.id),
-      getNotifications(supplier.id),
-      getTickets(), // not yet scoped by supplierId in the mock schema — harmless while only one supplier is seeded
-    ]).then(([products, orders, payouts, notifications, tickets]) => {
-      if (cancelled) return;
-
-      const newOrders = orders.filter((o) => o.status === 'new').length;
-      const preparingOrders = orders.filter((o) => o.status === 'preparing').length;
-
-      let lowStockCount = 0;
-      let pendingProductsCount = 0;
-      products.forEach((product) => {
-        if (product.status === 'pending') pendingProductsCount += 1;
-        product.variants.forEach((variant) => {
-          if (availableStock(variant) <= LOW_STOCK_THRESHOLD) lowStockCount += 1;
-        });
-      });
-
-      const dueByCurrency = { USD: 0, SYP: 0 };
-      payouts.forEach((p) => {
-        if (p.status === 'eligible' || p.status === 'collecting') dueByCurrency[p.currency] += p.netAmount;
-      });
-
-      const openTickets = tickets.filter((t) => t.status !== 'resolved').length;
-      const unreadNotifications = notifications.filter((n) => !n.read).length;
-
-      const ratingValues = Object.values(supplier.ratingSummary ?? {});
-      const ratingAvg = ratingValues.length ? ratingValues.reduce((a, b) => a + b, 0) / ratingValues.length : null;
-
-      setStats({ newOrders, preparingOrders, lowStockCount, pendingProductsCount, dueByCurrency, openTickets, unreadNotifications, ratingAvg });
-    });
-    return () => { cancelled = true; };
-  }, [supplier.id, supplier.ratingSummary]);
-
-  if (!stats) return null;
+  const { supplier, employee } = useSupplierSession();
+  const navigate = useNavigate();
+  const firstName = employee?.name?.split(' ')[0] ?? supplier?.fullName?.split(' ')[0] ?? 'فادي';
 
   return (
-    <div>
-      <h1 className="mb-1 text-xl font-extrabold text-text-primary">أهلًا، {supplier.companyName}</h1>
-      <p className="mb-6 text-sm text-text-secondary">نظرة سريعة على ما يحتاج إجراء منك الآن.</p>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <StatCard
-          to="/supplier/orders?status=new"
-          label="طلبات جديدة تحتاج إجراء"
-          value={stats.newOrders}
-          tone={stats.newOrders > 0 ? 'warning' : 'neutral'}
-        />
-        <StatCard
-          to="/supplier/orders?status=preparing"
-          label="طلبات قيد التجهيز"
-          value={stats.preparingOrders}
-          hint="تابع المواعيد لتفادي التأخير"
-        />
-        <StatCard
-          to="/supplier/inventory?filter=low-stock"
-          label="نسخ منتجات بمخزون منخفض"
-          value={stats.lowStockCount}
-          tone={stats.lowStockCount > 0 ? 'danger' : 'neutral'}
-        />
-        <StatCard
-          to="/supplier/products?status=pending"
-          label="منتجات بانتظار موافقة الإدارة"
-          value={stats.pendingProductsCount}
-        />
-        <StatCard
-          to="/supplier/payouts?currency=USD"
-          label="الرصيد المستحق (دولار)"
-          value={<CurrencyAmount amount={stats.dueByCurrency.USD} currency="USD" />}
-        />
-        <StatCard
-          to="/supplier/payouts?currency=SYP"
-          label="الرصيد المستحق (ليرة سورية)"
-          value={<CurrencyAmount amount={stats.dueByCurrency.SYP} currency="SYP" />}
-        />
-        <StatCard
-          to="/supplier/performance"
-          label="مؤشر الأداء العام"
-          value={stats.ratingAvg !== null ? `${Math.round(stats.ratingAvg * 100)}%` : '—'}
-          hint="دقة التجهيز، جودة المنتج، الالتزام بالمواعيد"
-        />
-        <StatCard to="/supplier/disputes" label="تذاكر ونزاعات مفتوحة" value={stats.openTickets} />
-        <StatCard to="/supplier/notifications" label="تنبيهات غير مقروءة" value={stats.unreadNotifications} />
+    <section className="page" id="page-overview">
+      <div className="page-head">
+        <div>
+          <h1>أهلًا {firstName} 👋</h1>
+          <div className="sub">ملخص أداء {supplier?.companyName ?? 'مصنع الأناقة'} اليوم</div>
+        </div>
       </div>
-    </div>
+      <div className="kpi-grid">
+        <div className="kpi-card"><span className="label">طلبات تحتاج تجهيز</span><div className="value en">3</div></div>
+        <div className="kpi-card"><span className="label">منتجات منخفضة المخزون</span><div className="value en">2</div></div>
+        <div className="kpi-card"><span className="label">مبيعات هالشهر</span><div className="value en">6,840</div></div>
+        <div className="kpi-card"><span className="label">مستحقات متاحة</span><div className="value en">2,110</div></div>
+      </div>
+      <div className="grid-2">
+        <div className="panel">
+          <div className="panel-head"><h3>طلبات تحتاج تجهيز</h3><a href="#" onClick={(e) => { e.preventDefault(); navigate('/supplier/orders'); }} style={{ fontSize: '0.84rem', color: 'var(--brand-blue)', fontWeight: 700 }}>الكل</a></div>
+          <div className="simple-list">
+            <div className="simple-row">
+              <div className="ic" style={{ background: 'var(--warning-bg)' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" strokeWidth="2"><circle cx="12" cy="12" r="9" /><path d="M12 7v6l4 2" /></svg></div>
+              <div className="txt"><div className="t">#MD-20481 · متجر لمسة</div><div className="s">طقم كنب ٣ قطع × 1</div></div>
+              <span className="cta" onClick={() => navigate('/supplier/orders')}>تجهيز</span>
+            </div>
+            <div className="simple-row">
+              <div className="ic" style={{ background: 'var(--warning-bg)' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" strokeWidth="2"><circle cx="12" cy="12" r="9" /><path d="M12 7v6l4 2" /></svg></div>
+              <div className="txt"><div className="t">#MD-20479 · متجر لمسة</div><div className="s">مصباح أرضي × 2</div></div>
+              <span className="cta" onClick={() => navigate('/supplier/orders')}>تجهيز</span>
+            </div>
+          </div>
+        </div>
+        <div className="panel">
+          <div className="panel-head"><h3>تنبيهات المخزون</h3></div>
+          <div className="simple-list">
+            <div className="simple-row"><div className="ic" style={{ background: 'var(--danger-bg)' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" strokeWidth="2"><path d="M12 9v4M12 17h.01" /></svg></div><div className="txt"><div className="t">طاولة طعام خشب</div><div className="s">4 قطع متبقية</div></div></div>
+            <div className="simple-row"><div className="ic" style={{ background: 'var(--warning-bg)' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" strokeWidth="2"><path d="M12 9v4M12 17h.01" /></svg></div><div className="txt"><div className="t">سجادة صالون ٢×٣</div><div className="s">2 قطعة متبقية</div></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }

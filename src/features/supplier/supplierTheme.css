@@ -1,0 +1,79 @@
+/**
+ * Supplier portal theme layer. Everything here is scoped under
+ * `.supplier-portal` (applied once, on SupplierRoot's wrapper) so it can
+ * never leak into — or be overridden by — the main marketing site, which
+ * keeps reading the unscoped `:root` tokens in src/styles/global.css.
+ *
+ * Light mode reuses the exact same token values as the main site (so the
+ * portal still feels like MIDRAR), just re-declared under `.supplier-portal`
+ * so `[data-theme="dark"]` has something to override without touching
+ * `:root`. Dark mode is an independent palette, not a filter/invert — hand
+ * -picked to keep the same brand hues working on dark surfaces.
+ *
+ * Tailwind's utilities (bg-surface, text-text-primary, ...) already read
+ * these same custom properties via the @theme mapping in src/index.css,
+ * so no `dark:` variant classes are needed anywhere in the portal's
+ * components — overriding the variables here is enough.
+ */
+
+.supplier-portal{
+  --font-ar: 'Cairo', 'Tajawal', sans-serif;
+  font-family: var(--font-ar);
+
+  /* Scoped overrides of the shared radius tokens (defined at :root in
+     src/styles/global.css, used by the main site's hand-written CSS) —
+     the portal wants a more generous, "premium SaaS" radius than the
+     marketing site's own values. CSS custom properties resolve to the
+     nearest ancestor definition, so anything inside .supplier-portal
+     (including Tailwind's rounded-sm/md/lg utilities, which read these
+     same var names via the @theme mapping in src/index.css) picks up
+     these values automatically; the main site outside this scope keeps
+     reading the unscoped :root values untouched. */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+
+  --background: #F6F8FA;
+  --surface: #FFFFFF;
+  --surface-subtle: #F3F6F9;
+  --surface-sunken: #EEF2F6;
+
+  --text-primary: #0C1F35;
+  --text-secondary: #4C5E71;
+  --text-muted: #8695A4;
+  --text-on-inverse: #EAF1F8;
+  --text-on-inverse-muted: #93A9C2;
+
+  --border-default: #E4E9EE;
+  --border-strong: #CBD5DF;
+
+  --success: #17925F;
+  --warning: #B8791A;
+  --danger: #C4402E;
+
+  color-scheme: light;
+}
+
+.supplier-portal[data-theme="dark"]{
+  --background: #071426;
+  --surface: #0E1E33;
+  --surface-subtle: #14283F;
+  --surface-sunken: #0A1A2C;
+
+  --text-primary: #EAF1F8;
+  --text-secondary: #93A9C2;
+  --text-muted: #64798F;
+  --text-on-inverse: #0C1F35;
+  --text-on-inverse-muted: #4C5E71;
+
+  --border-default: rgba(255,255,255,0.10);
+  --border-strong: rgba(255,255,255,0.18);
+
+  --success: #2FBE83;
+  --warning: #E0A23A;
+  --danger: #E5695A;
+
+  color-scheme: dark;
+}
+
+.supplier-portal{ background: var(--background); color: var(--text-primary); min-height: 100vh; }

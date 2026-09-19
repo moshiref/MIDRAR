@@ -30,7 +30,11 @@ export default function MerchantSupplierSplit() {
                 <li key={item}><CheckIcon size={15} stroke="var(--brand-blue)" strokeWidth={2.4} /> {item}</li>
               ))}
             </ul>
-            <Button href="#supplier-registration" variant="secondary">سجّل كمورد</Button>
+            {/* TEMP routing while Supplier Dashboard is under review: sends
+                to /supplier instead of the registration flow. Registration
+                itself (SupplierWizard inside OpenStorePage.jsx) is untouched
+                — point this back at it when asked to restore. */}
+            <Button href="/supplier" variant="secondary">سجّل كمورد</Button>
           </div>
         </div>
       </div>

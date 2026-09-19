@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { getSupplier, getEmployees } from '../data/mockSupplierDb';
+import { getSuppliers, getSupplier, getEmployees } from '../data/mockSupplierDb';
+import { DEV_SKIP_SUPPLIER_AUTH } from '../devAuthBypass';
 
 /**
  * Mock session/permissions for the supplier portal. There is no backend
@@ -39,6 +40,18 @@ export function SupplierSessionProvider({ children }) {
 
   const loadSession = useCallback(async (ids) => {
     if (!ids) {
+      if (DEV_SKIP_SUPPLIER_AUTH) {
+        const suppliers = await getSuppliers();
+        const defaultSupplier = suppliers[0] ?? null;
+        const defaultEmployees = defaultSupplier ? await getEmployees(defaultSupplier.id) : [];
+        const defaultEmployee = defaultEmployees.find((e) => e.role === 'owner') ?? defaultEmployees[0] ?? null;
+        if (defaultSupplier && defaultEmployee && defaultEmployee.status !== 'disabled') {
+          setSupplier(defaultSupplier);
+          setEmployee(defaultEmployee);
+          setStatus('signed-in');
+          return;
+        }
+      }
       setSupplier(null);
       setEmployee(null);
       setStatus('signed-out');
@@ -49,7 +62,7 @@ export function SupplierSessionProvider({ children }) {
       getEmployees(ids.supplierId),
     ]);
     const employeeRecord = employeeRecords.find((e) => e.id === ids.employeeId) ?? null;
-    if (!supplierRecord || !employeeRecord) {
+    if (!supplierRecord || !employeeRecord || employeeRecord.status === 'disabled') {
       writeStoredSession(null);
       setSupplier(null);
       setEmployee(null);

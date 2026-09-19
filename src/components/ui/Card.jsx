@@ -7,7 +7,10 @@
  */
 export default function Card({ as: Tag = 'div', className = '', children, ...rest }) {
   return (
-    <Tag className={`rounded-lg border border-border-default bg-surface p-5 shadow-sm ${className}`.trim()} {...rest}>
+    <Tag
+      className={`rounded-lg border border-border-default bg-surface p-5 shadow-[0_1px_2px_rgba(9,25,46,0.05)] ${className}`.trim()}
+      {...rest}
+    >
       {children}
     </Tag>
   );

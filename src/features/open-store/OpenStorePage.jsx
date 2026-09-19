@@ -193,7 +193,7 @@ const SUPPLIER_INITIAL = {
   assets: [], notes: '', consent: false, termsAccepted: false,
 };
 
-function SupplierWizard() {
+export function SupplierWizard() {
   const w = useWizardForm({
     totalSteps: 3,
     requiredByStep: SUPPLIER_REQUIRED,
@@ -332,7 +332,12 @@ export default function OpenStorePage() {
           <p>{copy.sub}</p>
           <div className="route-toggle">
             <button type="button" className={route === 'merchant' ? 'active' : ''} onClick={() => setRoute('merchant')}>افتح متجرك</button>
-            <button type="button" className={route === 'supplier' ? 'active' : ''} onClick={() => setRoute('supplier')}>سجّل كمورد</button>
+            {/* TEMP routing while Supplier Dashboard is under review: this
+                used to switch `route` to show SupplierWizard below; now it
+                sends straight to /supplier instead. SupplierWizard, its
+                fields, and its validation are untouched — restore
+                `onClick={() => setRoute('supplier')}` to bring this back. */}
+            <button type="button" onClick={() => navigate('/supplier')}>سجّل كمورد</button>
           </div>
         </div>
 

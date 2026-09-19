@@ -26,7 +26,7 @@ export default function Table({ columns, rows, rowKey = (row) => row.id, emptyMe
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={rowKey(row)} className="border-b border-border-default last:border-0">
+            <tr key={rowKey(row)} className="border-b border-border-default transition-colors last:border-0 hover:bg-surface-subtle">
               {columns.map((col) => (
                 <td key={col.key} className="px-4 py-3 text-start text-text-primary">
                   {col.render ? col.render(row) : row[col.key]}

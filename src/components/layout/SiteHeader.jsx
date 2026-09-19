@@ -2,27 +2,42 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Logo from '../ui/Logo';
 
-/**
- * Single source of truth for the nav links — both the desktop center bar
- * and the mobile dropdown render this same array, so there is exactly
- * one place to add/remove/rename/reorder a link. Do not fork a second
- * list for mobile; if content ever needs to differ, that's a product
- * decision to revisit here, not a reason to duplicate this array.
- */
-const NAV_LINKS = [
+/** Desktop center nav — unchanged, still the trimmed 3-link set. */
+const DESKTOP_NAV_LINKS = [
   { href: '#plans', label: 'الباقات' },
   { href: '#products', label: 'المنتجات' },
   { href: '#contact', label: 'تواصل معنا' },
 ];
 
 /**
+ * Mobile menu — deliberately a separate, fuller list from
+ * DESKTOP_NAV_LINKS (same hrefs/labels the desktop bar used to show
+ * before it was trimmed down, plus "تسجيل الدخول"). Only the *display*
+ * differs between breakpoints, not a shared source of truth — the
+ * product ask here was explicitly "mobile shows every nav link", not
+ * "mobile mirrors whatever desktop currently shows".
+ */
+const MOBILE_NAV_LINKS = [
+  { href: '#plans', label: 'الباقات' },
+  { href: '#products', label: 'المنتجات' },
+  { href: '#how', label: 'كيف تعمل مدرار' },
+  { href: '#merchants', label: 'للتجار' },
+  { href: '#suppliers', label: 'للموردين' },
+  { href: '#faq', label: 'الأسئلة الشائعة' },
+  { href: '#contact', label: 'تواصل معنا' },
+];
+
+/**
  * Sticky <header>. Desktop: logo pinned right (`.logo-link{justify-self:
- * start}`, right in RTL), NAV_LINKS truly centered (`.nav` is a 3-column
- * grid `1fr auto 1fr`, so the flanking tracks are always equal width and
- * the middle track lands exactly on the bar's midpoint regardless of
- * side content width), "انضم إلينا" pinned left. The mobile dropdown
- * mirrors the desktop bar exactly — same NAV_LINKS, same order, same
- * "انضم إلينا" → /open-store CTA — nothing added or removed for mobile.
+ * start}`, right in RTL), DESKTOP_NAV_LINKS truly centered (`.nav` is a
+ * 3-column grid `1fr auto 1fr`, so the flanking tracks are always equal
+ * width and the middle track lands exactly on the bar's midpoint
+ * regardless of side content width), "انضم إلينا" pinned left. None of
+ * that changes on mobile — only `.nav-toggle` (the hamburger, pinned to
+ * the phone's physical left edge via `position:absolute; left:28px` on
+ * `header`, not grid/RTL inference) and the dropdown it opens, which
+ * lists MOBILE_NAV_LINKS + "تسجيل الدخول" — not "انضم إلينا", which stays
+ * exclusively the floating circular CTA (FloatingJoinCta) on mobile.
  * `isOpen` toggles that dropdown, closed on every link click. The
  * scroll-progress bar, header scroll-shadow and scroll-spy active link
  * are page-wide effects handled by their own hooks in PublicLayout.
@@ -48,7 +63,7 @@ export default function SiteHeader() {
           <Logo />
         </a>
         <nav className="nav-links" id="navLinks">
-          {NAV_LINKS.map((link) => (
+          {DESKTOP_NAV_LINKS.map((link) => (
             <a key={link.href} href={link.href} data-nav="">
               {link.label}
             </a>
@@ -70,13 +85,13 @@ export default function SiteHeader() {
         </div>
       </div>
       <div className={`mobile-panel${isOpen ? ' open' : ''}`} id="mobilePanel">
-        {NAV_LINKS.map((link) => (
+        {MOBILE_NAV_LINKS.map((link) => (
           <a key={link.href} href={link.href} onClick={closeMobile}>
             {link.label}
           </a>
         ))}
-        <Link className="btn btn-primary" to="/open-store" onClick={closeMobile}>
-          انضم إلينا
+        <Link to="/login" onClick={closeMobile}>
+          تسجيل الدخول
         </Link>
       </div>
     </header>

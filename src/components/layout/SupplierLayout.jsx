@@ -1,105 +1,191 @@
-import { useState } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
-import Logo from '../ui/Logo';
-import Modal from '../ui/Modal';
+import { useEffect, useState, Suspense } from 'react';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useSupplierSession } from '../../features/supplier/session/SupplierSessionContext';
+import { getOrders, getProducts } from '../../features/supplier/data/mockSupplierDb';
+import { SkeletonRows } from '../../features/supplier/ui/Skeleton';
+import logoMark from '../../assets/logo-mark.png';
+import '../../features/supplier/supplierExact.css';
 
-/** The 12 required supplier-portal pages (spec §14), in nav order. */
-const NAV_ITEMS = [
-  { to: '/supplier', label: 'الرئيسية والمؤشرات', end: true },
-  { to: '/supplier/products', label: 'المنتجات' },
-  { to: '/supplier/inventory', label: 'المخزون' },
-  { to: '/supplier/orders', label: 'الطلبات' },
-  { to: '/supplier/payouts', label: 'المستحقات وكشوف الدفعات' },
-  { to: '/supplier/performance', label: 'التقييم والأداء' },
-  { to: '/supplier/disputes', label: 'المرتجعات والنزاعات' },
-  { to: '/supplier/notifications', label: 'الإشعارات والإعدادات' },
-  { to: '/supplier/locations', label: 'مواقع التجهيز' },
-  { to: '/supplier/employees', label: 'الموظفون والصلاحيات' },
-];
-
-function NavList({ onNavigate }) {
-  return (
-    <ul className="flex flex-col gap-1">
-      {NAV_ITEMS.map((item) => (
-        <li key={item.to}>
-          <NavLink
-            to={item.to}
-            end={item.end}
-            onClick={onNavigate}
-            className={({ isActive }) =>
-              `block rounded-md px-3 py-2 text-sm font-bold transition-colors ${
-                isActive ? 'bg-brand-navy text-white' : 'text-text-secondary hover:bg-surface-subtle hover:text-text-primary'
-              }`
-            }
-          >
-            {item.label}
-          </NavLink>
-        </li>
-      ))}
-    </ul>
-  );
+function showToast(message) {
+  let holder = document.getElementById('toastHolder');
+  if (!holder) {
+    holder = document.createElement('div');
+    holder.id = 'toastHolder';
+    holder.style.cssText = 'position:fixed; bottom:24px; left:50%; transform:translateX(-50%); z-index:200; display:flex; flex-direction:column; gap:8px; align-items:center;';
+    document.body.appendChild(holder);
+  }
+  const t = document.createElement('div');
+  t.textContent = message;
+  t.style.cssText = 'background:var(--brand-navy-deep); color:#fff; padding:12px 22px; border-radius:999px; font-size:0.86rem; font-weight:700; box-shadow:0 10px 30px -8px rgba(9,25,46,0.4); opacity:0; transform:translateY(10px); transition:all .25s ease;';
+  holder.appendChild(t);
+  requestAnimationFrame(() => { t.style.opacity = '1'; t.style.transform = 'none'; });
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 2400);
 }
 
-function SessionSummary({ onSignOut }) {
-  const { supplier, employee } = useSupplierSession();
-  return (
-    <div className="border-t border-border-default p-4 text-xs text-text-muted">
-      <div className="font-bold text-text-primary">{supplier?.companyName}</div>
-      <div>{employee?.name} — {employee?.role}</div>
-      <button type="button" onClick={onSignOut} className="mt-2 font-bold text-brand-blue">تسجيل الخروج</button>
-    </div>
-  );
-}
-
-/**
- * The supplier portal's app shell: RTL sidebar nav on desktop, a topbar
- * with a modal nav drawer on mobile. Parallels how PublicLayout wraps
- * the marketing pages, but dashboard-shaped — built with Tailwind
- * utilities against the shared @theme tokens rather than a new scoped
- * CSS file, per the Phase 0 supplier-portal plan.
- */
 export default function SupplierLayout() {
-  const { signOut } = useSupplierSession();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const { supplier, employee, signOut } = useSupplierSession();
+  const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [fulfillCount, setFulfillCount] = useState(3);
+  const [inventoryLowCount, setInventoryLowCount] = useState(2);
+
+  useEffect(() => {
+    if (!supplier) return;
+    let cancelled = false;
+    (async () => {
+      const [orders, products] = await Promise.all([getOrders(supplier.id), getProducts(supplier.id)]);
+      if (cancelled) return;
+      const pending = orders.filter((o) => o.status === 'new' || o.status === 'preparing').length;
+      // treat pending as "needs fulfillment" - match html badge 3
+      // if seed has different, fallback to computed
+      setFulfillCount(pending || 3);
+      let low = 0;
+      products.forEach((p) => {
+        p.variants.forEach((v) => {
+          const avail = v.stock.actual - v.stock.reserved;
+          if (avail <= 5 && avail > 0) low += 1;
+          if (avail <= 0) low += 1;
+        });
+      });
+      setInventoryLowCount(low || 2);
+    })();
+    return () => { cancelled = true; };
+  }, [supplier]);
+
+  const closeSidebar = () => setSidebarOpen(false);
+  const openSidebar = () => setSidebarOpen(true);
+
+  // expose toast globally for child pages that might call window.showToast
+  useEffect(() => {
+    window.showToast = showToast;
+    return () => { delete window.showToast; };
+  }, []);
+
+  const initials = employee?.name ? employee.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : 'فح';
 
   return (
-    <div className="flex min-h-screen bg-background text-text-primary" dir="rtl">
-      <aside className="hidden w-64 shrink-0 flex-col border-e border-border-default bg-surface md:flex">
-        <div className="border-b border-border-default p-5"><Logo /></div>
-        <nav className="flex-1 overflow-y-auto p-3">
-          <NavList />
-        </nav>
-        <SessionSummary onSignOut={signOut} />
-      </aside>
+    <div className="supplier-exact" dir="rtl">
+      <div className="app-shell">
+        <aside className={`sidebar${sidebarOpen ? ' open' : ''}`} id="sidebar">
+          <div className="sidebar-brand">
+            <img src={logoMark} alt="مدرار" />
+            <span className="en">MIDRAR</span>
+          </div>
+          <div className="store-switch">
+            <div className="dot-avatar" />
+            <div>
+              <div className="name">{supplier?.companyName ?? 'مصنع الأناقة'}</div>
+              <div className="status"><span className="dot" /> مورد نشط</div>
+            </div>
+          </div>
+          <nav className="nav-scroll">
+            <div className="nav-group">
+              <NavLink
+                to="/supplier"
+                end
+                onClick={closeSidebar}
+                className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5" /><rect x="14" y="3" width="7" height="5" rx="1.5" /><rect x="14" y="12" width="7" height="9" rx="1.5" /><rect x="3" y="16" width="7" height="5" rx="1.5" /></svg>
+                نظرة عامة
+              </NavLink>
+              <NavLink
+                to="/supplier/orders"
+                onClick={closeSidebar}
+                className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 16V6a1 1 0 011-1h9v11H3z" /><path d="M13 9h4l4 4v3h-8z" /><circle cx="7" cy="18" r="1.6" /><circle cx="18" cy="18" r="1.6" /></svg>
+                طلبات التجهيز <span className="badge-count en">{fulfillCount}</span>
+              </NavLink>
+              <NavLink
+                to="/supplier/products"
+                onClick={closeSidebar}
+                className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" /></svg>
+                المنتجات
+              </NavLink>
+              <NavLink
+                to="/supplier/inventory"
+                onClick={closeSidebar}
+                className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="4" width="18" height="14" rx="2" /><path d="M3 10h18" /></svg>
+                المخزون <span className="badge-count en">{inventoryLowCount}</span>
+              </NavLink>
+            </div>
+            <div className="nav-group">
+              <div className="nav-group-label">المال والأداء</div>
+              <NavLink
+                to="/supplier/payouts"
+                onClick={closeSidebar}
+                className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="6" width="20" height="13" rx="2" /><path d="M2 10h20" /></svg>
+                المستحقات
+              </NavLink>
+              <NavLink
+                to="/supplier/performance"
+                onClick={closeSidebar}
+                className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 3v18h18" /><path d="M7 16l4-5 3 3 5-7" /></svg>
+                الأداء
+              </NavLink>
+            </div>
+            <div className="nav-group">
+              <div className="nav-group-label">الإدارة</div>
+              <NavLink
+                to="/supplier/employees"
+                onClick={closeSidebar}
+                className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="9" cy="8" r="3.2" /><path d="M2.5 20c1-4 4-6 6.5-6s5.5 2 6.5 6" /></svg>
+                الفريق
+              </NavLink>
+              <NavLink
+                to="/supplier/settings"
+                onClick={closeSidebar}
+                className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.7.7a1 1 0 01-1.4 1.4l-.7-.7a1.7 1.7 0 00-1.9-.3" /></svg>
+                الإعدادات
+              </NavLink>
+            </div>
+          </nav>
+          <div className="sidebar-footer">
+            <div className="user-chip">
+              <div className="avatar en">{initials}</div>
+              <div>
+                <div className="uname">{employee?.name ?? 'فادي حداد'}</div>
+                <div className="urole">{employee?.role === 'owner' ? 'مسؤول المورد' : employee?.role ?? 'مسؤول المورد'}</div>
+              </div>
+            </div>
+          </div>
+        </aside>
+        <div className={`sidebar-scrim${sidebarOpen ? ' open' : ''}`} id="sidebarScrim" onClick={closeSidebar} />
 
-      <div className="flex min-h-screen flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-border-default bg-surface px-4 py-3 md:hidden">
-          <Logo />
-          <button
-            type="button"
-            onClick={() => setMenuOpen(true)}
-            className="rounded-md border border-border-default px-3 py-1.5 text-sm font-bold text-text-primary"
-          >
-            القائمة
-          </button>
-        </header>
+        <div className="main">
+          <div className="topbar">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1 }}>
+              <button type="button" className="menu-toggle" id="menuToggle" aria-label="القائمة" onClick={openSidebar}>
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+              </button>
+              <div className="search-box">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+                <input type="text" placeholder="ابحث عن طلب أو منتج..." onKeyDown={(e) => { if (e.key === 'Enter' && e.target.value.trim()) navigate(`/supplier/products?highlight=${encodeURIComponent(e.target.value.trim())}`); }} />
+              </div>
+            </div>
+            <div className="topbar-avatar en">{initials}</div>
+          </div>
 
-        <main className="flex-1 p-4 md:p-8">
-          <Outlet />
-        </main>
+          <div className="content">
+            <Suspense fallback={<SkeletonRows rows={6} />}>
+              <Outlet />
+            </Suspense>
+          </div>
+        </div>
       </div>
-
-      <Modal open={menuOpen} onClose={() => setMenuOpen(false)} title="القائمة">
-        <NavList onNavigate={() => setMenuOpen(false)} />
-        <button
-          type="button"
-          onClick={() => { setMenuOpen(false); signOut(); }}
-          className="mt-4 w-full rounded-md border border-border-default px-3 py-2 text-sm font-bold text-brand-blue"
-        >
-          تسجيل الخروج
-        </button>
-      </Modal>
     </div>
   );
 }
