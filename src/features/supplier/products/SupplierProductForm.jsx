@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import Card from '../../../components/ui/Card';
-import PageHeader from '../ui/PageHeader';
-import { Skeleton } from '../ui/Skeleton';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { useToast } from '../ui/SupplierToast';
 import { useSupplierSession } from '../session/SupplierSessionContext';
 import { getProduct, addProduct, updateProduct, getLocations } from '../data/mockSupplierDb';
@@ -29,17 +27,6 @@ const EMPTY_VARIANT = () => ({
   supplyPrice: '', minPrice: '', suggestedPrice: '',
   prepDays: '', location: '', stock: '',
 });
-
-function Field({ label, children }) {
-  return (
-    <label className="flex flex-col gap-1 text-sm font-bold text-text-primary">
-      {label}
-      {children}
-    </label>
-  );
-}
-
-const inputClass = 'rounded-md border border-border-default bg-surface px-3 py-2 text-sm font-normal text-text-primary';
 
 export default function SupplierProductForm() {
   const { supplier } = useSupplierSession();
@@ -188,118 +175,125 @@ export default function SupplierProductForm() {
 
   if (loading) {
     return (
-      <div className="flex flex-col gap-3">
-        <Skeleton className="h-6 w-48" />
-        <Skeleton className="h-64 w-full" />
-      </div>
+      <section className="page">
+        <div className="page-head"><div><h1>تعديل المنتج</h1></div></div>
+        <div className="skeleton" style={{ height: 320 }} />
+      </section>
     );
   }
 
   return (
-    <div>
-      <PageHeader title={isEdit ? 'تعديل المنتج' : 'إضافة منتج'} />
-      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-        <Card>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="اسم المنتج">
-              <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
-              {errors.name && <span className="text-xs font-bold text-danger">هذا الحقل مطلوب</span>}
-            </Field>
-            <Field label="التصنيف">
-              <select value={sector} onChange={(e) => setSector(e.target.value)} className={inputClass}>
+    <section className="page">
+      <div className="page-head"><div><h1>{isEdit ? 'تعديل المنتج' : 'إضافة منتج'}</h1></div></div>
+
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+        <div className="panel">
+          <div className="form-grid">
+            <div className="field">
+              <label>اسم المنتج</label>
+              <input value={name} onChange={(e) => setName(e.target.value)} />
+              {errors.name && <span style={{ fontSize: '0.76rem', fontWeight: 700, color: 'var(--danger)' }}>هذا الحقل مطلوب</span>}
+            </div>
+            <div className="field">
+              <label>التصنيف</label>
+              <select value={sector} onChange={(e) => setSector(e.target.value)}>
                 {SECTORS.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
-            </Field>
-            <Field label="الوصف">
-              <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className={inputClass} />
-            </Field>
-            <Field label="المواصفات">
-              <textarea rows={3} value={specs} onChange={(e) => setSpecs(e.target.value)} placeholder="مثال: الخامة، الأبعاد، الوزن..." className={inputClass} />
-            </Field>
-          </div>
-        </Card>
-
-        <Card>
-          <h2 className="mb-3 text-sm font-extrabold text-text-primary">الصور</h2>
-          <div
-            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={(e) => { e.preventDefault(); setDragOver(false); addImages(e.dataTransfer.files); }}
-            className={`flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-6 text-center text-sm ${dragOver ? 'border-brand-teal bg-brand-teal/5' : 'border-border-strong'}`}
-          >
-            <p className="text-text-secondary">اسحب الصور هنا أو</p>
-            <label className="cursor-pointer rounded-md border border-border-default px-3 py-1.5 text-xs font-bold text-text-primary">
-              اختر ملفات
-              <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => addImages(e.target.files)} />
-            </label>
-          </div>
-          {images.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-3">
-              {images.map((img, i) => (
-                <div key={img.url} className="relative">
-                  <img src={img.url} alt="" className="h-20 w-20 rounded-md object-cover" />
-                  <div className="mt-1 flex items-center justify-center gap-1">
-                    <button type="button" onClick={() => moveImage(i, -1)} className="text-xs text-text-muted">◀</button>
-                    <button type="button" onClick={() => removeImage(i)} className="text-xs font-bold text-danger">إزالة</button>
-                    <button type="button" onClick={() => moveImage(i, 1)} className="text-xs text-text-muted">▶</button>
-                  </div>
-                </div>
-              ))}
             </div>
-          )}
-        </Card>
-
-        <Card>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-extrabold text-text-primary">المتغيرات (اللون / المقاس / السعر / المخزون)</h2>
-            <button type="button" onClick={addVariant} className="text-xs font-bold text-brand-blue">+ إضافة متغيّر</button>
+            <div className="field">
+              <label>الوصف</label>
+              <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
+            </div>
+            <div className="field">
+              <label>المواصفات</label>
+              <textarea rows={3} value={specs} onChange={(e) => setSpecs(e.target.value)} placeholder="مثال: الخامة، الأبعاد، الوزن..." />
+            </div>
           </div>
-          <div className="flex flex-col gap-4">
+        </div>
+
+        <div className="panel">
+          <div className="panel-head"><h3>الصور</h3></div>
+          <div style={{ padding: 20 }}>
+            <div
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={(e) => { e.preventDefault(); setDragOver(false); addImages(e.dataTransfer.files); }}
+              className={`dropzone${dragOver ? ' drag' : ''}`}
+            >
+              <p>اسحب الصور هنا أو</p>
+              <label className="pick">
+                اختر ملفات
+                <input type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={(e) => addImages(e.target.files)} />
+              </label>
+            </div>
+            {images.length > 0 && (
+              <div style={{ marginTop: 16, display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+                {images.map((img, i) => (
+                  <div key={img.url} className="img-thumb">
+                    <img src={img.url} alt="" />
+                    <div className="ctrls">
+                      <button type="button" onClick={() => moveImage(i, -1)} style={{ color: 'var(--text-muted)' }}><ChevronRight size={13} strokeWidth={2} /></button>
+                      <button type="button" onClick={() => removeImage(i)} style={{ fontWeight: 700, color: 'var(--danger)' }}>إزالة</button>
+                      <button type="button" onClick={() => moveImage(i, 1)} style={{ color: 'var(--text-muted)' }}><ChevronLeft size={13} strokeWidth={2} /></button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="panel">
+          <div className="panel-head">
+            <h3>المتغيرات (اللون / المقاس / السعر / المخزون)</h3>
+            <button type="button" onClick={addVariant} style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--brand-blue)' }}>+ إضافة متغيّر</button>
+          </div>
+          <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
             {variants.map((v, i) => (
-              <div key={i} className="rounded-lg border border-border-default p-4">
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  <Field label="اللون"><input value={v.color} onChange={(e) => updateVariant(i, { color: e.target.value })} className={inputClass} /></Field>
-                  <Field label="المقاس"><input value={v.size} onChange={(e) => updateVariant(i, { size: e.target.value })} className={inputClass} /></Field>
-                  <Field label="سعر التوريد ($)"><input type="number" min="0" value={v.supplyPrice} onChange={(e) => updateVariant(i, { supplyPrice: e.target.value })} className={inputClass} /></Field>
-                  <Field label="الحد الأدنى للبيع ($)"><input type="number" min="0" value={v.minPrice} onChange={(e) => updateVariant(i, { minPrice: e.target.value })} className={inputClass} /></Field>
-                  <Field label="السعر المقترح ($)"><input type="number" min="0" value={v.suggestedPrice} onChange={(e) => updateVariant(i, { suggestedPrice: e.target.value })} className={inputClass} /></Field>
-                  <Field label="مدة التجهيز (أيام)"><input type="number" min="0" value={v.prepDays} onChange={(e) => updateVariant(i, { prepDays: e.target.value })} className={inputClass} /></Field>
-                  <Field label="موقع المخزون">
-                    <select value={v.location} onChange={(e) => updateVariant(i, { location: e.target.value })} className={inputClass}>
+              <div key={i} className="variant-card">
+                <div className="form-grid grid-4" style={{ padding: 0 }}>
+                  <div className="field"><label>اللون</label><input value={v.color} onChange={(e) => updateVariant(i, { color: e.target.value })} /></div>
+                  <div className="field"><label>المقاس</label><input value={v.size} onChange={(e) => updateVariant(i, { size: e.target.value })} /></div>
+                  <div className="field"><label>سعر التوريد ($)</label><input type="number" min="0" className="en" dir="ltr" value={v.supplyPrice} onChange={(e) => updateVariant(i, { supplyPrice: e.target.value })} /></div>
+                  <div className="field"><label>الحد الأدنى للبيع ($)</label><input type="number" min="0" className="en" dir="ltr" value={v.minPrice} onChange={(e) => updateVariant(i, { minPrice: e.target.value })} /></div>
+                  <div className="field"><label>السعر المقترح ($)</label><input type="number" min="0" className="en" dir="ltr" value={v.suggestedPrice} onChange={(e) => updateVariant(i, { suggestedPrice: e.target.value })} /></div>
+                  <div className="field"><label>مدة التجهيز (أيام)</label><input type="number" min="0" className="en" dir="ltr" value={v.prepDays} onChange={(e) => updateVariant(i, { prepDays: e.target.value })} /></div>
+                  <div className="field">
+                    <label>موقع المخزون</label>
+                    <select value={v.location} onChange={(e) => updateVariant(i, { location: e.target.value })}>
                       <option value="">اختر موقعًا</option>
                       {locations.map((l) => <option key={l.id} value={l.name}>{l.name}</option>)}
                     </select>
-                  </Field>
-                  <Field label="الكمية الابتدائية"><input type="number" min="0" value={v.stock} onChange={(e) => updateVariant(i, { stock: e.target.value })} className={inputClass} /></Field>
+                  </div>
+                  <div className="field"><label>الكمية الابتدائية</label><input type="number" min="0" className="en" dir="ltr" value={v.stock} onChange={(e) => updateVariant(i, { stock: e.target.value })} /></div>
                 </div>
-                {errors[`variant-${i}`] && <p className="mt-2 text-xs font-bold text-danger">الرجاء تعبئة أسعار هذا المتغيّر (توريد / حد أدنى / مقترح)</p>}
+                {errors[`variant-${i}`] && <p style={{ marginTop: 8, fontSize: '0.76rem', fontWeight: 700, color: 'var(--danger)' }}>الرجاء تعبئة أسعار هذا المتغيّر (توريد / حد أدنى / مقترح)</p>}
                 {variants.length > 1 && (
-                  <button type="button" onClick={() => removeVariant(i)} className="mt-3 text-xs font-bold text-danger">إزالة هذا المتغيّر</button>
+                  <button type="button" onClick={() => removeVariant(i)} style={{ marginTop: 10, fontSize: '0.78rem', fontWeight: 700, color: 'var(--danger)' }}>إزالة هذا المتغيّر</button>
                 )}
               </div>
             ))}
           </div>
-        </Card>
+        </div>
 
-        <Card>
-          <Field label="حالة المنتج">
-            <select value={status} onChange={(e) => setStatus(e.target.value)} className={`${inputClass} max-w-xs`}>
-              <option value="draft">مسودة (غير مرسلة بعد)</option>
-              <option value="pending">إرسال للمراجعة</option>
-            </select>
-          </Field>
-        </Card>
+        <div className="panel">
+          <div className="form-grid" style={{ gridTemplateColumns: '1fr' }}>
+            <div className="field" style={{ maxWidth: 280 }}>
+              <label>حالة المنتج</label>
+              <select value={status} onChange={(e) => setStatus(e.target.value)}>
+                <option value="draft">مسودة (غير مرسلة بعد)</option>
+                <option value="pending">إرسال للمراجعة</option>
+              </select>
+            </div>
+          </div>
+        </div>
 
-        <div className="flex items-center justify-end gap-3">
-          {!isEdit && <span className="me-auto text-xs text-text-muted">يُحفظ كمسودة محليًا تلقائيًا أثناء الكتابة</span>}
-          <button type="button" onClick={handleCancel} className="rounded-md border border-border-default px-4 py-2 text-sm font-bold text-text-primary">
-            إلغاء
-          </button>
-          <button type="submit" className="rounded-md bg-brand-navy px-5 py-2.5 text-sm font-bold text-white">
-            {isEdit ? 'حفظ التعديلات' : 'إرسال المنتج'}
-          </button>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, flexWrap: 'wrap' }}>
+          {!isEdit && <span style={{ marginInlineEnd: 'auto', fontSize: '0.76rem', color: 'var(--text-muted)' }}>يُحفظ كمسودة محليًا تلقائيًا أثناء الكتابة</span>}
+          <button type="button" onClick={handleCancel} className="btn btn-secondary">إلغاء</button>
+          <button type="submit" className="btn btn-primary">{isEdit ? 'حفظ التعديلات' : 'إرسال المنتج'}</button>
         </div>
       </form>
-    </div>
+    </section>
   );
 }

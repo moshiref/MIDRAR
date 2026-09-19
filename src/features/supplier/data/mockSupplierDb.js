@@ -84,18 +84,26 @@ function seedEmployees() {
 function seedProducts() {
   return [
     {
-      id: 'prod_1', supplierId: SEED_SUPPLIER_ID, name: 'كنبة زاوية قماش', sector: 'أثاث وديكور منزلي', status: 'approved', createdAt: '2026-06-02T08:00:00.000Z',
+      id: 'prod_1', supplierId: SEED_SUPPLIER_ID, name: 'كنبة زاوية قماش', sector: 'أثاث وديكور منزلي', categoryId: 'cat_2', status: 'approved', createdAt: '2026-06-02T08:00:00.000Z', images: [], video: null,
       variants: [
         { id: 'var_1', label: 'رمادي - كبير', supplyPrice: { amount: 340, currency: 'USD' }, minPrice: { amount: 420, currency: 'USD' }, suggestedPrice: { amount: 480, currency: 'USD' }, prepDays: 3, location: 'مستودع دمشق', stock: { actual: 12, reserved: 2 } },
         { id: 'var_2', label: 'بيج - كبير', supplyPrice: { amount: 340, currency: 'USD' }, minPrice: { amount: 420, currency: 'USD' }, suggestedPrice: { amount: 480, currency: 'USD' }, prepDays: 3, location: 'مستودع دمشق', stock: { actual: 3, reserved: 1 } },
       ],
     },
     {
-      id: 'prod_2', supplierId: SEED_SUPPLIER_ID, name: 'طاولة طعام خشبية', sector: 'أثاث وديكور منزلي', status: 'pending', createdAt: '2026-09-10T08:00:00.000Z',
+      id: 'prod_2', supplierId: SEED_SUPPLIER_ID, name: 'طاولة طعام خشبية', sector: 'أثاث وديكور منزلي', categoryId: null, status: 'pending', createdAt: '2026-09-10T08:00:00.000Z', images: [], video: null,
       variants: [
         { id: 'var_3', label: 'قياس 160سم', supplyPrice: { amount: 180, currency: 'USD' }, minPrice: { amount: 230, currency: 'USD' }, suggestedPrice: { amount: 260, currency: 'USD' }, prepDays: 5, location: 'مستودع دمشق', stock: { actual: 6, reserved: 0 } },
       ],
     },
+  ];
+}
+
+function seedCategories() {
+  return [
+    { id: 'cat_1', supplierId: SEED_SUPPLIER_ID, name: 'غرف نوم', createdAt: '2026-06-01T08:30:00.000Z', updatedAt: '2026-06-01T08:30:00.000Z' },
+    { id: 'cat_2', supplierId: SEED_SUPPLIER_ID, name: 'غرف معيشة', createdAt: '2026-06-01T08:30:00.000Z', updatedAt: '2026-06-01T08:30:00.000Z' },
+    { id: 'cat_3', supplierId: SEED_SUPPLIER_ID, name: 'كراسي', createdAt: '2026-06-01T08:30:00.000Z', updatedAt: '2026-06-01T08:30:00.000Z' },
   ];
 }
 
@@ -239,7 +247,12 @@ function collection(name, seedFactory) {
 
 const suppliers = collection('suppliers', seedSuppliers);
 const employees = collection('employees', seedEmployees);
-const products = collection('products', seedProducts);
+// `products_v3`, not `products`: readCollection() only reseeds on a cache
+// miss, and this shape changed (added `categoryId`, then `images`/`video`)
+// after some browsers had already cached the old shape — same class of bug
+// fixed for `dashboard_series` above. Bump this suffix again if the shape
+// changes further, so a stale cache can never silently hide new fields again.
+const products = collection('products_v3', seedProducts);
 const inventoryMovements = collection('inventory_movements', seedInventoryMovements);
 const orders = collection('orders', seedOrders);
 const payouts = collection('payouts', seedPayouts);
@@ -249,6 +262,7 @@ const auditLog = collection('audit_log', seedAuditLog);
 const fulfillmentProofs = collection('fulfillment_proofs', seedFulfillmentProofs);
 const orderMessages = collection('order_messages', seedOrderMessages);
 const locations = collection('locations', seedLocations);
+const categories = collection('categories', seedCategories);
 
 async function appendAuditLog(entry) {
   const items = await auditLog.all();
@@ -304,7 +318,11 @@ export async function getProduct(productId) {
   return (await products.all()).find((p) => p.id === productId) ?? null;
 }
 
-export async function addProduct({ supplierId, name, description, sector, images, specs, variants, status, actorName }) {
+export async function addProduct({ supplierId, name, description, sector, categoryId, images, video, specs, variants, status, actorName }) {
+  if (categoryId) {
+    const category = (await categories.all()).find((c) => c.id === categoryId);
+    if (!category || category.supplierId !== supplierId) throw new Error('القسم المختار غير تابع لهذا المورد');
+  }
   const items = await products.all();
   const product = {
     id: nextId('prod'),
@@ -312,7 +330,9 @@ export async function addProduct({ supplierId, name, description, sector, images
     name,
     description,
     sector,
+    categoryId: categoryId ?? null,
     images: images ?? [],
+    video: video ?? null,
     specs: specs ?? '',
     status: status ?? 'pending',
     createdAt: new Date().toISOString(),
@@ -328,6 +348,10 @@ export async function updateProduct({ productId, patch, actorName }) {
   const items = await products.all();
   const product = items.find((p) => p.id === productId);
   if (!product) throw new Error(`updateProduct: unknown product "${productId}"`);
+  if (patch.categoryId) {
+    const category = (await categories.all()).find((c) => c.id === patch.categoryId);
+    if (!category || category.supplierId !== product.supplierId) throw new Error('القسم المختار غير تابع لهذا المورد');
+  }
   Object.assign(product, patch);
   await products.replace(items);
   await appendAuditLog({ actorName, action: 'product.update', target: productId, details: patch });
@@ -569,6 +593,68 @@ export async function getAuditLog() {
  */
 export async function getDashboardSeries() {
   return readCollection('dashboard_series_v2', seedDashboardSeries).items;
+}
+
+// ---- categories -------------------------------------------------------
+// Supplier-owned custom taxonomy, distinct from `sector` (a fixed global
+// list every product already has) — a category only exists for, and is
+// only ever visible/editable by, the supplier who created it.
+
+export async function getCategories(supplierId) {
+  return (await categories.all()).filter((c) => c.supplierId === supplierId);
+}
+
+export async function addCategory({ supplierId, name, actorName }) {
+  const trimmed = (name ?? '').trim();
+  if (!trimmed) throw new Error('اسم القسم مطلوب');
+  const items = await categories.all();
+  const duplicate = items.some((c) => c.supplierId === supplierId && c.name.trim().toLowerCase() === trimmed.toLowerCase());
+  if (duplicate) throw new Error('يوجد قسم بنفس الاسم بالفعل');
+  const now = new Date().toISOString();
+  const category = { id: nextId('cat'), supplierId, name: trimmed, createdAt: now, updatedAt: now };
+  items.push(category);
+  await categories.replace(items);
+  await appendAuditLog({ actorName, action: 'category.add', target: category.id, details: { name: trimmed } });
+  return category;
+}
+
+export async function updateCategory({ categoryId, name, actorName }) {
+  const trimmed = (name ?? '').trim();
+  if (!trimmed) throw new Error('اسم القسم مطلوب');
+  const items = await categories.all();
+  const category = items.find((c) => c.id === categoryId);
+  if (!category) throw new Error(`updateCategory: unknown category "${categoryId}"`);
+  const duplicate = items.some((c) => c.id !== categoryId && c.supplierId === category.supplierId && c.name.trim().toLowerCase() === trimmed.toLowerCase());
+  if (duplicate) throw new Error('يوجد قسم بنفس الاسم بالفعل');
+  category.name = trimmed;
+  category.updatedAt = new Date().toISOString();
+  await categories.replace(items);
+  await appendAuditLog({ actorName, action: 'category.update', target: categoryId, details: { name: trimmed } });
+  return category;
+}
+
+/** Blocks deletion (no cascade) if any product still references this category — matches the spec's explicit "never silently delete products" requirement. */
+export async function deleteCategory({ categoryId, actorName }) {
+  const items = await categories.all();
+  const category = items.find((c) => c.id === categoryId);
+  if (!category) throw new Error(`deleteCategory: unknown category "${categoryId}"`);
+  const linkedProducts = (await products.all()).some((p) => p.categoryId === categoryId);
+  if (linkedProducts) {
+    throw new Error('لا يمكن حذف هذا القسم لأنه يحتوي على منتجات. قم بنقل المنتجات إلى قسم آخر أولًا.');
+  }
+  await categories.replace(items.filter((c) => c.id !== categoryId));
+  await appendAuditLog({ actorName, action: 'category.delete', target: categoryId, details: { name: category.name } });
+}
+
+/** `{ [categoryId]: productCount }` for one supplier — used by the categories table's "عدد المنتجات" column. */
+export async function getCategoryProductCounts(supplierId) {
+  const supplierProducts = await getProducts(supplierId);
+  const counts = {};
+  supplierProducts.forEach((p) => {
+    if (!p.categoryId) return;
+    counts[p.categoryId] = (counts[p.categoryId] ?? 0) + 1;
+  });
+  return counts;
 }
 
 export { SEED_SUPPLIER_ID };

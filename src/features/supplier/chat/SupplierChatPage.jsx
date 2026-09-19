@@ -1,10 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Send } from 'lucide-react';
-import Card from '../../../components/ui/Card';
-import EmptyState from '../../../components/ui/EmptyState';
-import PageHeader from '../ui/PageHeader';
-import { SkeletonRows } from '../ui/Skeleton';
 import { useSupplierSession } from '../session/SupplierSessionContext';
 import { getOrders, getOrderMessages, addOrderMessage, markOrderMessagesRead, getUnreadOrderMessageCounts } from '../data/mockSupplierDb';
 
@@ -64,75 +60,71 @@ export default function SupplierChatPage() {
 
   if (orders === null) {
     return (
-      <div>
-        <PageHeader title="المحادثات" />
-        <SkeletonRows rows={4} />
-      </div>
+      <section className="page">
+        <div className="page-head"><div><h1>المحادثات</h1></div></div>
+        <div className="skeleton" style={{ height: 220 }} />
+      </section>
     );
   }
 
   return (
-    <div>
-      <PageHeader title="المحادثات" subtitle="محادثة تشغيلية مرتبطة بكل طلب — بدون أرقام هواتف أو أسماء شخصية." />
+    <section className="page">
+      <div className="page-head">
+        <div>
+          <h1>المحادثات</h1>
+          <div className="sub">محادثة تشغيلية مرتبطة بكل طلب — بدون أرقام هواتف أو أسماء شخصية.</div>
+        </div>
+      </div>
 
       {orders.length === 0 ? (
-        <EmptyState title="لا توجد طلبات بعد" message="ستظهر الطلبات هنا لفتح محادثة تشغيلية خاصة بكل واحد." />
+        <div className="panel">
+          <div className="empty-state">
+            <div className="title">لا توجد طلبات بعد</div>
+            <div className="msg">ستظهر الطلبات هنا لفتح محادثة تشغيلية خاصة بكل واحد.</div>
+          </div>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[280px_1fr]">
-          <Card className="h-fit p-2">
-            <ul className="flex flex-col gap-1">
+        <div className="split-panel">
+          <div className="panel">
+            <div className="split-list">
               {orders.map((o) => (
-                <li key={o.id}>
-                  <button
-                    type="button"
-                    onClick={() => handleSelectOrder(o.id)}
-                    className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-start text-sm font-bold ${
-                      o.id === selectedOrderId ? 'bg-brand-navy text-white' : 'text-text-secondary hover:bg-surface-subtle'
-                    }`}
-                  >
-                    <span>{o.opRef}</span>
-                    {unreadCounts[o.id] > 0 && (
-                      <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[0.62rem] font-extrabold text-white">
-                        {unreadCounts[o.id]}
-                      </span>
-                    )}
-                  </button>
-                </li>
+                <button
+                  key={o.id}
+                  type="button"
+                  className={`split-list-item${o.id === selectedOrderId ? ' active' : ''}`}
+                  onClick={() => handleSelectOrder(o.id)}
+                >
+                  <span className="en">{o.opRef}</span>
+                  {unreadCounts[o.id] > 0 && <span className="count en">{unreadCounts[o.id]}</span>}
+                </button>
               ))}
-            </ul>
-          </Card>
-
-          <Card className="flex min-h-[420px] flex-col">
-            <div className="mb-3 border-b border-border-default pb-2 text-sm font-extrabold text-text-primary">
-              {selectedOrder?.opRef}
             </div>
-            <div className="flex-1 space-y-3 overflow-y-auto">
+          </div>
+
+          <div className="panel chat-pane">
+            <div className="chat-head">{selectedOrder?.opRef}</div>
+            <div className="chat-body">
               {messages.length === 0 ? (
-                <p className="text-sm text-text-secondary">لا رسائل بعد — ابدأ المحادثة إذا احتجت توضيح شيء بخصوص هذا الطلب.</p>
+                <p style={{ fontSize: '0.86rem', color: 'var(--text-secondary)' }}>لا رسائل بعد — ابدأ المحادثة إذا احتجت توضيح شيء بخصوص هذا الطلب.</p>
               ) : (
                 messages.map((m) => (
-                  <div key={m.id} className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${m.role === 'supplier' ? 'me-0 ms-auto bg-brand-navy text-white' : 'bg-surface-subtle text-text-primary'}`}>
-                    <div className="mb-0.5 text-xs font-bold opacity-80">{m.from}</div>
+                  <div key={m.id} className={`chat-bubble ${m.role === 'supplier' ? 'mine' : 'theirs'}`}>
+                    <div className="from">{m.from}</div>
                     <div>{m.text}</div>
-                    <div className="mt-1 text-[0.65rem] opacity-70">{formatTime(m.at)}</div>
+                    <div className="time">{formatTime(m.at)}</div>
                   </div>
                 ))
               )}
             </div>
-            <form onSubmit={handleSend} className="mt-3 flex gap-2 border-t border-border-default pt-3">
-              <input
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder="اكتب رسالة..."
-                className="flex-1 rounded-md border border-border-default bg-surface px-3 py-2 text-sm text-text-primary"
-              />
-              <button type="submit" className="flex items-center gap-1.5 rounded-md bg-brand-navy px-4 py-2 text-sm font-bold text-white hover:bg-brand-navy-deep">
+            <form onSubmit={handleSend} className="chat-foot">
+              <input value={text} onChange={(e) => setText(e.target.value)} placeholder="اكتب رسالة..." />
+              <button type="submit" className="btn btn-primary btn-sm">
                 إرسال <Send size={14} strokeWidth={2} />
               </button>
             </form>
-          </Card>
+          </div>
         </div>
       )}
-    </div>
+    </section>
   );
 }

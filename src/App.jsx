@@ -23,6 +23,7 @@ const SupplierSignInPage = lazy(() => import('./features/supplier/session/Suppli
 const SupplierApplicationStatusPage = lazy(() => import('./features/supplier/onboarding/SupplierApplicationStatusPage'));
 const SupplierDashboardHome = lazy(() => import('./features/supplier/dashboard/SupplierDashboardHome'));
 const SupplierProductsPage = lazy(() => import('./features/supplier/products/SupplierProductsPage'));
+const SupplierCategoriesPage = lazy(() => import('./features/supplier/categories/SupplierCategoriesPage'));
 const SupplierProductForm = lazy(() => import('./features/supplier/products/SupplierProductForm'));
 const SupplierInventoryPage = lazy(() => import('./features/supplier/inventory/SupplierInventoryPage'));
 const SupplierOrdersPage = lazy(() => import('./features/supplier/orders/SupplierOrdersPage'));
@@ -77,6 +78,7 @@ function App() {
           <Route element={<SupplierProtectedLayout />}>
             <Route index element={<SupplierDashboardHome />} />
             <Route path="products" element={<SupplierProductsPage />} />
+            <Route path="categories" element={<SupplierCategoriesPage />} />
             <Route path="products/new" element={<SupplierProductForm />} />
             <Route path="products/:productId" element={<SupplierProductForm />} />
             <Route path="inventory" element={<SupplierInventoryPage />} />

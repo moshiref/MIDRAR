@@ -1,10 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Video, Image as ImageIcon, CheckCircle2 } from 'lucide-react';
-import Card from '../../../components/ui/Card';
-import EmptyState from '../../../components/ui/EmptyState';
-import PageHeader from '../ui/PageHeader';
-import { SkeletonRows } from '../ui/Skeleton';
 import { useToast } from '../ui/SupplierToast';
 import { useSupplierSession } from '../session/SupplierSessionContext';
 import { getOrders, getFulfillmentProofs, addFulfillmentProof } from '../data/mockSupplierDb';
@@ -61,90 +57,101 @@ export default function SupplierFulfillmentProofPage() {
 
   if (orders === null) {
     return (
-      <div>
-        <PageHeader title="إثبات التجهيز" />
-        <SkeletonRows rows={4} />
-      </div>
+      <section className="page">
+        <div className="page-head"><div><h1>إثبات التجهيز</h1></div></div>
+        <div className="skeleton" style={{ height: 220 }} />
+      </section>
     );
   }
 
   return (
-    <div>
-      <PageHeader title="إثبات التجهيز" subtitle="وثّق تجهيز الطلب بفيديو أو صور قبل التسليم، لحمايتك عند أي نزاع لاحق." />
+    <section className="page">
+      <div className="page-head">
+        <div>
+          <h1>إثبات التجهيز</h1>
+          <div className="sub">وثّق تجهيز الطلب بفيديو أو صور قبل التسليم، لحمايتك عند أي نزاع لاحق.</div>
+        </div>
+      </div>
 
       {orders.length === 0 ? (
-        <EmptyState title="لا توجد طلبات بعد" message="ستظهر الطلبات هنا لرفع إثبات التجهيز الخاص بكل واحد." />
+        <div className="panel">
+          <div className="empty-state">
+            <div className="title">لا توجد طلبات بعد</div>
+            <div className="msg">ستظهر الطلبات هنا لرفع إثبات التجهيز الخاص بكل واحد.</div>
+          </div>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[280px_1fr]">
-          <Card className="h-fit p-2">
-            <ul className="flex flex-col gap-1">
+        <div className="split-panel">
+          <div className="panel">
+            <div className="split-list">
               {orders.map((o) => (
-                <li key={o.id}>
-                  <button
-                    type="button"
-                    onClick={() => handleSelectOrder(o.id)}
-                    className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-start text-sm font-bold ${
-                      o.id === selectedOrderId ? 'bg-brand-navy text-white' : 'text-text-secondary hover:bg-surface-subtle'
-                    }`}
-                  >
-                    <span>{o.opRef}</span>
-                    {(proofsByOrder[o.id]?.length ?? 0) > 0 && <CheckCircle2 size={14} strokeWidth={2} className="text-success" />}
-                  </button>
-                </li>
+                <button
+                  key={o.id}
+                  type="button"
+                  className={`split-list-item${o.id === selectedOrderId ? ' active' : ''}`}
+                  onClick={() => handleSelectOrder(o.id)}
+                >
+                  <span className="en">{o.opRef}</span>
+                  {(proofsByOrder[o.id]?.length ?? 0) > 0 && <CheckCircle2 size={14} strokeWidth={2} color="var(--success)" />}
+                </button>
               ))}
-            </ul>
-          </Card>
+            </div>
+          </div>
 
-          <div className="flex flex-col gap-4">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {selectedOrder && canUpload && (
-              <Card>
-                <h2 className="mb-3 text-sm font-extrabold text-text-primary">رفع إثبات جديد — {selectedOrder.opRef}</h2>
-                <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-                  <label className="flex flex-col gap-1 text-sm font-bold text-text-primary">
-                    فيديو أو صور
-                    <input type="file" accept="video/*,image/*" multiple onChange={(e) => handleFilesChange(e.target.files)} className="text-sm" />
-                  </label>
+              <div className="panel">
+                <div className="panel-head"><h3>رفع إثبات جديد — {selectedOrder.opRef}</h3></div>
+                <form onSubmit={handleSubmit} className="form-grid" style={{ gridTemplateColumns: '1fr' }}>
+                  <div className="field full">
+                    <label>فيديو أو صور</label>
+                    <input type="file" accept="video/*,image/*" multiple onChange={(e) => handleFilesChange(e.target.files)} style={{ border: 'none', padding: '6px 0' }} />
+                  </div>
                   {files.length > 0 && (
-                    <ul className="text-xs text-text-secondary">
+                    <ul style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: 2 }}>
                       {files.map((f) => <li key={f.name}>{f.name} ({f.type === 'video' ? 'فيديو' : 'صورة'})</li>)}
                     </ul>
                   )}
-                  <label className="flex flex-col gap-1 text-sm font-bold text-text-primary">
-                    ملاحظات
-                    <textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} className="rounded-md border border-border-default px-3 py-2 text-sm font-normal text-text-primary" />
-                  </label>
-                  <button type="submit" disabled={files.length === 0} className="self-end rounded-md bg-brand-navy px-4 py-2 text-sm font-bold text-white disabled:opacity-50">
+                  <div className="field full">
+                    <label>ملاحظات</label>
+                    <textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} />
+                  </div>
+                  <button type="submit" disabled={files.length === 0} className="btn btn-primary" style={{ alignSelf: 'flex-end', opacity: files.length === 0 ? 0.5 : 1 }}>
                     رفع
                   </button>
                 </form>
-              </Card>
+              </div>
             )}
 
-            <Card>
-              <h2 className="mb-3 text-sm font-extrabold text-text-primary">سجل الإثباتات</h2>
-              {selectedProofs.length === 0 ? (
-                <p className="text-sm text-text-secondary">لا يوجد إثبات تجهيز مرفوع لهذا الطلب بعد.</p>
-              ) : (
-                <ul className="flex flex-col gap-3">
-                  {selectedProofs.map((p) => (
-                    <li key={p.id} className="rounded-md border border-border-default p-3 text-sm">
-                      <div className="mb-1 flex flex-wrap gap-2">
-                        {p.files.map((f, i) => (
-                          <span key={i} className="flex items-center gap-1 rounded-full bg-surface-subtle px-2 py-0.5 text-xs font-bold text-text-secondary">
-                            {f.type === 'video' ? <Video size={12} strokeWidth={2} /> : <ImageIcon size={12} strokeWidth={2} />} {f.name}
-                          </span>
-                        ))}
-                      </div>
-                      {p.note && <p className="mb-1 text-text-primary">{p.note}</p>}
-                      <div className="text-xs text-text-muted">{p.uploadedBy} — {formatDateTime(p.uploadedAt)}</div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </Card>
+            <div className="panel">
+              <div className="panel-head"><h3>سجل الإثباتات</h3></div>
+              <div style={{ padding: selectedProofs.length ? '16px 22px' : 0 }}>
+                {selectedProofs.length === 0 ? (
+                  <div className="empty-state" style={{ padding: '32px 16px' }}>
+                    <div className="msg">لا يوجد إثبات تجهيز مرفوع لهذا الطلب بعد.</div>
+                  </div>
+                ) : (
+                  <ul style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {selectedProofs.map((p) => (
+                      <li key={p.id} style={{ border: '1px solid var(--border-default)', borderRadius: 9, padding: 12, fontSize: '0.86rem' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 6 }}>
+                          {p.files.map((f, i) => (
+                            <span key={i} className="badge badge-neutral">
+                              {f.type === 'video' ? <Video size={12} strokeWidth={2} /> : <ImageIcon size={12} strokeWidth={2} />} {f.name}
+                            </span>
+                          ))}
+                        </div>
+                        {p.note && <p style={{ marginBottom: 6 }}>{p.note}</p>}
+                        <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>{p.uploadedBy} — {formatDateTime(p.uploadedAt)}</div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 }
