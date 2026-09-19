@@ -139,5 +139,56 @@
   .supplier-exact .sidebar-scrim{ position:fixed; inset:0; background:rgba(9,25,46,0.5); z-index:29; opacity:0; pointer-events:none; transition:opacity .2s ease; }
   .supplier-exact .sidebar-scrim.open{ opacity:1; pointer-events:auto; }
 
+  /* ===== Enhanced responsive ===== */
+  @media (max-width: 768px){
+    .supplier-exact .topbar{ padding-inline:16px; height:60px; gap:10px; }
+    .supplier-exact .page-head{ flex-direction:column; align-items:stretch; gap:12px; }
+    .supplier-exact .page-head h1{ font-size:1.35rem; }
+    .supplier-exact .page-head .page-actions{ width:100%; }
+    .supplier-exact .page-head .page-actions .btn{ width:100%; }
+    .supplier-exact .kpi-card{ padding:16px; }
+    .supplier-exact .kpi-card .value{ font-size:1.25rem; }
+    .supplier-exact .panel-head{ padding:16px; }
+    .supplier-exact .simple-row{ padding:12px 16px; }
+    .supplier-exact .table-wrap{ -webkit-overflow-scrolling:touch; }
+    .supplier-exact thead th{ padding:10px 14px; font-size:0.74rem; }
+    .supplier-exact tbody td{ padding:12px 14px; font-size:0.84rem; }
+    .supplier-exact .filters-bar{ gap:8px; }
+    .supplier-exact .chip-tab{ padding:7px 12px; font-size:0.80rem; }
+  }
+  @media (max-width: 560px){
+    .supplier-exact .sidebar{ width:min(85vw, 264px); }
+    .supplier-exact .content{ padding:16px 12px 60px; }
+    .supplier-exact .kpi-grid{ gap:12px; }
+    .supplier-exact .grid-2{ gap:12px; }
+    .supplier-exact .form-grid{ padding:16px 14px; gap:12px; }
+    .supplier-exact .drawer{ width:100vw; }
+    .supplier-exact .drawer-head{ padding:18px 16px; }
+    .supplier-exact .drawer-foot{ padding:14px 16px; flex-direction:column; }
+    .supplier-exact .drawer-foot .btn{ width:100%; }
+  }
+  @media (max-width: 480px){
+    .supplier-exact .topbar{ padding-inline:12px; }
+    .supplier-exact .topbar-avatar{ width:34px; height:34px; font-size:0.76rem; }
+    .supplier-exact .menu-toggle{ width:34px; height:34px; }
+    .supplier-exact .page-head h1{ font-size:1.25rem; }
+    .supplier-exact .page-head .sub{ font-size:0.84rem; }
+    .supplier-exact .btn{ padding:10px 16px; font-size:0.84rem; }
+    .supplier-exact .btn-sm{ padding:7px 12px; font-size:0.78rem; }
+    .supplier-exact .badge{ font-size:0.70rem; padding:4px 9px; }
+    .supplier-exact .prod-thumb{ width:36px; height:36px; }
+    .supplier-exact table{ min-width:520px; }
+    .supplier-exact .chip-tabs{ width:100%; overflow-x:auto; flex-wrap:nowrap; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+    .supplier-exact .chip-tabs::-webkit-scrollbar{ display:none; }
+    .supplier-exact .field input, .supplier-exact .field select, .supplier-exact .field textarea{ padding:10px 12px; font-size:0.86rem; }
+  }
+  @media (max-width: 360px){
+    .supplier-exact .sidebar{ width:92vw; }
+    .supplier-exact .content{ padding:14px 10px 50px; }
+    .supplier-exact .kpi-card .value{ font-size:1.15rem; }
+    .supplier-exact .simple-row .txt .t{ font-size:0.82rem; }
+    .supplier-exact .simple-row .txt .s{ font-size:0.72rem; }
+  }
+
   /* toast holder injected by JS */
-  #toastHolder{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%); z-index:200; display:flex; flex-direction:column; gap:8px; align-items:center; }
+  #toastHolder{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%); z-index:200; display:flex; flex-direction:column; gap:8px; align-items:center; max-width:calc(100vw - 24px); text-align:center; }
