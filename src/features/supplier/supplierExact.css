@@ -95,9 +95,16 @@
 
   .supplier-exact .table-wrap{ overflow-x:auto; }
   .supplier-exact table{ width:100%; border-collapse:separate; border-spacing:0; min-width:640px; }
-  .supplier-exact thead th{ text-align:start; font-size:0.78rem; color:var(--text-muted); font-weight:700; padding:13px 22px; border-bottom:1px solid var(--border-default); white-space:nowrap; background:var(--surface-subtle); }
-  .supplier-exact tbody td{ padding:15px 22px; font-size:0.88rem; border-bottom:1px solid var(--border-default); vertical-align:middle; }
-  .supplier-exact tbody tr:last-child td{ border-bottom:none; }
+  /* The row divider is painted once per <tr> (not per <td>): painting it on
+     each cell individually left a faint seam at column boundaries whenever
+     the browser rounded column widths to sub-pixel values, which read as a
+     "broken" line. A single box-shadow spanning the whole row has no seams
+     and is unaffected by any one column's content (e.g. the product image). */
+  .supplier-exact thead tr{ box-shadow:inset 0 -1px 0 0 var(--border-default); }
+  .supplier-exact thead th{ text-align:start; font-size:0.78rem; color:var(--text-muted); font-weight:700; padding:13px 22px; white-space:nowrap; background:var(--surface-subtle); }
+  .supplier-exact tbody tr{ box-shadow:inset 0 -1px 0 0 var(--border-default); }
+  .supplier-exact tbody tr:last-child{ box-shadow:none; }
+  .supplier-exact tbody td{ padding:15px 22px; font-size:0.88rem; vertical-align:middle; }
   .supplier-exact tbody tr.clickable{ cursor:pointer; } .supplier-exact tbody tr.clickable:hover{ background:var(--surface-subtle); }
   .supplier-exact td.num, .supplier-exact th.num{ font-family:var(--font-en); direction:ltr; text-align:end; }
   .supplier-exact .cell-main{ font-weight:700; } .supplier-exact .cell-sub{ font-size:0.78rem; color:var(--text-muted); margin-top:2px; }
