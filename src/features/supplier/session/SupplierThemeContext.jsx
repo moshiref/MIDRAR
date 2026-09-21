@@ -1,50 +1,13 @@
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
-
 /**
- * Light/dark toggle for the supplier portal only — see supplierTheme.css,
- * which scopes both palettes under `.supplier-portal[data-theme]` so this
- * never touches the main site's `:root` tokens or look.
+ * Wraps the supplier portal in the `.supplier-portal` scope that
+ * supplierTheme.css / supplierExact.css key their CSS custom properties
+ * off of. The portal is light-only by design — `data-theme` is fixed so
+ * nothing here needs to read/store a preference.
  */
-
-const THEME_KEY = 'midrar_supplier_theme_v1';
-const SupplierThemeContext = createContext(null);
-
-function initialTheme() {
-  try {
-    const stored = localStorage.getItem(THEME_KEY);
-    if (stored === 'light' || stored === 'dark') return stored;
-  } catch {
-    /* storage unavailable — fall back to system preference */
-  }
-  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
-
 export function SupplierThemeProvider({ children }) {
-  const [theme, setTheme] = useState(initialTheme);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(THEME_KEY, theme);
-    } catch {
-      /* storage unavailable — theme just won't survive a reload */
-    }
-  }, [theme]);
-
-  const toggleTheme = useCallback(() => {
-    setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
-  }, []);
-
   return (
-    <SupplierThemeContext.Provider value={{ theme, toggleTheme }}>
-      <div className="supplier-portal" data-theme={theme}>
-        {children}
-      </div>
-    </SupplierThemeContext.Provider>
+    <div className="supplier-portal" data-theme="light">
+      {children}
+    </div>
   );
-}
-
-export function useSupplierTheme() {
-  const ctx = useContext(SupplierThemeContext);
-  if (!ctx) throw new Error('useSupplierTheme must be used within a SupplierThemeProvider');
-  return ctx;
 }

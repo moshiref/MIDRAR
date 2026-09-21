@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getSuppliers, getEmployees } from '../data/mockSupplierDb';
+import { resolveRole } from '../team/permissions';
 import { useSupplierSession } from './SupplierSessionContext';
 import Card from '../../../components/ui/Card';
 import Logo from '../../../components/ui/Logo';
@@ -24,8 +25,10 @@ export default function SupplierSignInPage() {
     let cancelled = false;
     getSuppliers().then(async (list) => {
       const map = {};
+      // Only 'active' memberships can actually sign in — a suspended,
+      // pending-invite, or revoked one would silently fail loadSession().
       await Promise.all(list.map(async (s) => {
-        map[s.id] = await getEmployees(s.id);
+        map[s.id] = (await getEmployees(s.id)).filter((e) => e.status === 'active');
       }));
       if (cancelled) return;
       setSuppliers(list);
@@ -80,7 +83,7 @@ export default function SupplierSignInPage() {
               onChange={(e) => setEmployeeId(e.target.value)}
               className="rounded-md border border-border-default px-3 py-2 text-sm text-text-primary"
             >
-              {employees.map((emp) => <option key={emp.id} value={emp.id}>{emp.name} — {emp.role}</option>)}
+              {employees.map((emp) => <option key={emp.id} value={emp.id}>{emp.name} — {resolveRole(emp.roleId)?.name ?? emp.roleId}</option>)}
             </select>
           </label>
           <button

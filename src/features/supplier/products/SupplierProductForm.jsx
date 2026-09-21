@@ -252,11 +252,12 @@ export default function SupplierProductForm() {
             {variants.map((v, i) => (
               <div key={i} className="variant-card">
                 <div className="form-grid grid-4" style={{ padding: 0 }}>
+                  <div className="field"><label>سعر الجملة ($)</label><input type="number" min="0" className="en" dir="ltr" value={v.supplyPrice} onChange={(e) => updateVariant(i, { supplyPrice: e.target.value })} /></div>
+                  <div className="field"><label>السعر المقترح للبيع (المفرق) ($)</label><input type="number" min="0" className="en" dir="ltr" value={v.suggestedPrice} onChange={(e) => updateVariant(i, { suggestedPrice: e.target.value })} /></div>
+                  <div className="field"><label>الحد الأدنى للبيع (المفرق) ($)</label><input type="number" min="0" className="en" dir="ltr" value={v.minPrice} onChange={(e) => updateVariant(i, { minPrice: e.target.value })} /></div>
+                  <div className="field"><label>المخزون المتاح</label><input type="number" min="0" className="en" dir="ltr" value={v.stock} onChange={(e) => updateVariant(i, { stock: e.target.value })} /></div>
                   <div className="field"><label>اللون</label><input value={v.color} onChange={(e) => updateVariant(i, { color: e.target.value })} /></div>
                   <div className="field"><label>المقاس</label><input value={v.size} onChange={(e) => updateVariant(i, { size: e.target.value })} /></div>
-                  <div className="field"><label>سعر التوريد ($)</label><input type="number" min="0" className="en" dir="ltr" value={v.supplyPrice} onChange={(e) => updateVariant(i, { supplyPrice: e.target.value })} /></div>
-                  <div className="field"><label>الحد الأدنى للبيع ($)</label><input type="number" min="0" className="en" dir="ltr" value={v.minPrice} onChange={(e) => updateVariant(i, { minPrice: e.target.value })} /></div>
-                  <div className="field"><label>السعر المقترح ($)</label><input type="number" min="0" className="en" dir="ltr" value={v.suggestedPrice} onChange={(e) => updateVariant(i, { suggestedPrice: e.target.value })} /></div>
                   <div className="field"><label>مدة التجهيز (أيام)</label><input type="number" min="0" className="en" dir="ltr" value={v.prepDays} onChange={(e) => updateVariant(i, { prepDays: e.target.value })} /></div>
                   <div className="field">
                     <label>موقع المخزون</label>
@@ -265,7 +266,6 @@ export default function SupplierProductForm() {
                       {locations.map((l) => <option key={l.id} value={l.name}>{l.name}</option>)}
                     </select>
                   </div>
-                  <div className="field"><label>الكمية الابتدائية</label><input type="number" min="0" className="en" dir="ltr" value={v.stock} onChange={(e) => updateVariant(i, { stock: e.target.value })} /></div>
                 </div>
                 {errors[`variant-${i}`] && <p style={{ marginTop: 8, fontSize: '0.76rem', fontWeight: 700, color: 'var(--danger)' }}>الرجاء تعبئة أسعار هذا المتغيّر (توريد / حد أدنى / مقترح)</p>}
                 {variants.length > 1 && (

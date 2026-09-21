@@ -32,7 +32,7 @@ const SupplierChatPage = lazy(() => import('./features/supplier/chat/SupplierCha
 const SupplierDisputesPage = lazy(() => import('./features/supplier/disputes/SupplierDisputesPage'));
 const SupplierPayoutsPage = lazy(() => import('./features/supplier/payouts/SupplierPayoutsPage'));
 const SupplierPerformancePage = lazy(() => import('./features/supplier/performance/SupplierPerformancePage'));
-const SupplierEmployeesPage = lazy(() => import('./features/supplier/employees/SupplierEmployeesPage'));
+const SupplierTeamPage = lazy(() => import('./features/supplier/team/SupplierTeamPage'));
 const SupplierSettingsPage = lazy(() => import('./features/supplier/settings/SupplierSettingsPage'));
 
 /**
@@ -90,7 +90,7 @@ function App() {
             <Route path="disputes" element={<SupplierDisputesPage />} />
             <Route path="notifications" element={<SupplierPagePlaceholder title="الإشعارات" />} />
             <Route path="locations" element={<SupplierPagePlaceholder title="مواقع التجهيز" />} />
-            <Route path="employees" element={<SupplierEmployeesPage />} />
+            <Route path="team" element={<SupplierTeamPage />} />
             <Route path="settings" element={<SupplierSettingsPage />} />
           </Route>
         </Route>

@@ -18,7 +18,7 @@ export default function SupplierDisputesPage() {
   const [openTicket, setOpenTicket] = useState(null);
   const [reply, setReply] = useState('');
 
-  const canReply = hasPermission('fulfillment') || hasPermission('accounting');
+  const canReply = hasPermission('disputes.reply');
 
   const reload = () => getTickets(supplier.id).then((list) => {
     setTickets(list);

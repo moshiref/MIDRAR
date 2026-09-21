@@ -1,6 +1,7 @@
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { getSuppliers, getSupplier, getEmployees } from '../data/mockSupplierDb';
+import { getSuppliers, getSupplier, getEmployees, getTeamRoles } from '../data/mockSupplierDb';
+import { membershipHasPermission } from '../team/permissions';
 import { DEV_SKIP_SUPPLIER_AUTH } from '../devAuthBypass';
 
 /**
@@ -37,6 +38,7 @@ export function SupplierSessionProvider({ children }) {
   const [status, setStatus] = useState('loading'); // 'loading' | 'signed-out' | 'signed-in'
   const [supplier, setSupplier] = useState(null);
   const [employee, setEmployee] = useState(null);
+  const [teamRoles, setTeamRoles] = useState([]);
 
   const loadSession = useCallback(async (ids) => {
     if (!ids) {
@@ -44,16 +46,18 @@ export function SupplierSessionProvider({ children }) {
         const suppliers = await getSuppliers();
         const defaultSupplier = suppliers[0] ?? null;
         const defaultEmployees = defaultSupplier ? await getEmployees(defaultSupplier.id) : [];
-        const defaultEmployee = defaultEmployees.find((e) => e.role === 'owner') ?? defaultEmployees[0] ?? null;
-        if (defaultSupplier && defaultEmployee && defaultEmployee.status !== 'disabled') {
+        const defaultEmployee = defaultEmployees.find((e) => e.roleId === 'owner') ?? defaultEmployees[0] ?? null;
+        if (defaultSupplier && defaultEmployee && defaultEmployee.status === 'active') {
           setSupplier(defaultSupplier);
           setEmployee(defaultEmployee);
+          setTeamRoles(await getTeamRoles(defaultSupplier.id));
           setStatus('signed-in');
           return;
         }
       }
       setSupplier(null);
       setEmployee(null);
+      setTeamRoles([]);
       setStatus('signed-out');
       return;
     }
@@ -62,15 +66,20 @@ export function SupplierSessionProvider({ children }) {
       getEmployees(ids.supplierId),
     ]);
     const employeeRecord = employeeRecords.find((e) => e.id === ids.employeeId) ?? null;
-    if (!supplierRecord || !employeeRecord || employeeRecord.status === 'disabled') {
+    // Only 'active' can sign in — every other status (suspended, revoked,
+    // pending invite/verification, expired invite) is a blocked login,
+    // not just the old single 'disabled' value.
+    if (!supplierRecord || !employeeRecord || employeeRecord.status !== 'active') {
       writeStoredSession(null);
       setSupplier(null);
       setEmployee(null);
+      setTeamRoles([]);
       setStatus('signed-out');
       return;
     }
     setSupplier(supplierRecord);
     setEmployee(employeeRecord);
+    setTeamRoles(await getTeamRoles(ids.supplierId));
     setStatus('signed-in');
   }, []);
 
@@ -88,15 +97,38 @@ export function SupplierSessionProvider({ children }) {
     writeStoredSession(null);
     setSupplier(null);
     setEmployee(null);
+    setTeamRoles([]);
     setStatus('signed-out');
   }, []);
 
   const hasPermission = useCallback(
-    (permission) => Boolean(employee?.permissions?.includes(permission)),
-    [employee],
+    (permissionId) => membershipHasPermission(employee, permissionId, teamRoles),
+    [employee, teamRoles],
   );
 
-  const value = { status, supplier, employee, signIn, signOut, hasPermission };
+  // Re-pulls the current supplier record from mockSupplierDb — used after
+  // profile edits (SupplierSettingsPage) so the sidebar's company name/logo
+  // update immediately instead of waiting for the next sign-in.
+  const refreshSupplier = useCallback(async () => {
+    if (!supplier) return;
+    const fresh = await getSupplier(supplier.id);
+    if (fresh) setSupplier(fresh);
+  }, [supplier]);
+
+  // Re-pulls the current employee record + team roles — used by the Team
+  // module after the signed-in member edits their own role/roles list.
+  const refreshTeam = useCallback(async () => {
+    if (!supplier || !employee) return;
+    const [freshEmployees, freshRoles] = await Promise.all([getEmployees(supplier.id), getTeamRoles(supplier.id)]);
+    const fresh = freshEmployees.find((e) => e.id === employee.id);
+    if (fresh) setEmployee(fresh);
+    setTeamRoles(freshRoles);
+  }, [supplier, employee]);
+
+  const value = useMemo(
+    () => ({ status, supplier, employee, teamRoles, signIn, signOut, hasPermission, refreshSupplier, refreshTeam }),
+    [status, supplier, employee, teamRoles, signIn, signOut, hasPermission, refreshSupplier, refreshTeam],
+  );
 
   return <SupplierSessionContext.Provider value={value}>{children}</SupplierSessionContext.Provider>;
 }

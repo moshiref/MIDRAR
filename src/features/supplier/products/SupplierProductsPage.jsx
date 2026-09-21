@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { X, ChevronRight, ChevronLeft, Search } from 'lucide-react';
 import { useSupplierSession } from '../session/SupplierSessionContext';
-import { getProducts, addProduct, updateProduct, deleteProduct, getCategories, getOrders } from '../data/mockSupplierDb';
+import { getProducts, addProduct, updateProduct, deleteProduct, getCategories, addCategory, getOrders } from '../data/mockSupplierDb';
 
 const SORT_OPTIONS = [
   { value: 'default', label: 'الأحدث' },
@@ -62,6 +61,10 @@ export default function SupplierProductsPage() {
   const [imageFileError, setImageFileError] = useState('');
   const [videoFileError, setVideoFileError] = useState('');
   const [missingImageError, setMissingImageError] = useState('');
+  const [addingCategory, setAddingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [categorySaving, setCategorySaving] = useState(false);
+  const [categoryError, setCategoryError] = useState('');
 
   const reload = async () => {
     const [productList, categoryList, orderList] = await Promise.all([getProducts(supplier.id), getCategories(supplier.id), getOrders(supplier.id)]);
@@ -83,6 +86,28 @@ export default function SupplierProductsPage() {
     setImageFileError('');
     setVideoFileError('');
     setMissingImageError('');
+    setAddingCategory(false);
+    setNewCategoryName('');
+    setCategoryError('');
+  };
+
+  const handleCreateCategory = async () => {
+    const trimmed = newCategoryName.trim();
+    if (!trimmed) { setCategoryError('اسم القسم مطلوب'); return; }
+    setCategorySaving(true);
+    setCategoryError('');
+    try {
+      const category = await addCategory({ supplierId: supplier.id, name: trimmed, actorName: employee.name });
+      setCategories((prev) => [...prev, category]);
+      setForm((f) => ({ ...f, categoryId: category.id }));
+      setAddingCategory(false);
+      setNewCategoryName('');
+      showToast('تم إنشاء القسم — تابع تعبئة بيانات المنتج');
+    } catch (err) {
+      setCategoryError(err.message);
+    } finally {
+      setCategorySaving(false);
+    }
   };
 
   const openAddDrawer = () => { setDrawerMode('add'); setEditingProduct(null); setForm(EMPTY_FORM); resetUploadState(); };
@@ -358,30 +383,56 @@ export default function SupplierProductsPage() {
               <input type="text" className="en" dir="ltr" value={form.cost} onChange={(e) => setForm((f) => ({ ...f, cost: e.target.value }))} />
             </div>
             <div className="field full">
-              <label>السعر المقترح للمبيع</label>
+              <label>السعر المقترح للمبيع (المفرق)</label>
               <input type="text" className="en" dir="ltr" placeholder={form.cost} value={form.suggestedPrice} onChange={(e) => setForm((f) => ({ ...f, suggestedPrice: e.target.value }))} />
+            </div>
+            <div className="field full">
+              <label>الحد الأدنى للمبيع (المفرق)</label>
+              <input type="text" className="en" dir="ltr" placeholder={form.cost} value={form.minPrice} onChange={(e) => setForm((f) => ({ ...f, minPrice: e.target.value }))} />
             </div>
             <div className="field full">
               <label>المخزون المتاح</label>
               <input type="text" className="en" dir="ltr" value={form.stock} onChange={(e) => setForm((f) => ({ ...f, stock: e.target.value }))} />
             </div>
             <div className="field full">
-              <label>الحد الأدنى للمبيع</label>
-              <input type="text" className="en" dir="ltr" placeholder={form.cost} value={form.minPrice} onChange={(e) => setForm((f) => ({ ...f, minPrice: e.target.value }))} />
-            </div>
-            <div className="field full">
               <label>القسم</label>
-              {categories.length === 0 ? (
-                <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-                  لم تقم بإنشاء أي أقسام بعد —{' '}
-                  <Link to="/supplier/categories" style={{ color: 'var(--brand-blue)', fontWeight: 700 }}>إنشاء قسم</Link>
+              {addingCategory ? (
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <input
+                    type="text"
+                    style={{ flex: '1 1 160px' }}
+                    placeholder="اسم القسم الجديد"
+                    value={newCategoryName}
+                    onChange={(e) => { setNewCategoryName(e.target.value); setCategoryError(''); }}
+                    autoFocus
+                  />
+                  <button type="button" className="btn btn-primary btn-sm" style={{ width: 'auto' }} onClick={handleCreateCategory} disabled={categorySaving}>
+                    {categorySaving ? '...' : 'إضافة'}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    style={{ width: 'auto' }}
+                    onClick={() => { setAddingCategory(false); setNewCategoryName(''); setCategoryError(''); }}
+                    disabled={categorySaving}
+                  >
+                    إلغاء
+                  </button>
                 </div>
               ) : (
-                <select value={form.categoryId} onChange={(e) => setForm((f) => ({ ...f, categoryId: e.target.value }))}>
+                <select
+                  value={form.categoryId}
+                  onChange={(e) => {
+                    if (e.target.value === '__add__') { setAddingCategory(true); return; }
+                    setForm((f) => ({ ...f, categoryId: e.target.value }));
+                  }}
+                >
                   <option value="">بدون قسم</option>
                   {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  <option value="__add__">+ إضافة قسم جديد</option>
                 </select>
               )}
+              {categoryError && <span className="field-error">{categoryError}</span>}
             </div>
             <div className="field full">
               <label>الوصف</label>

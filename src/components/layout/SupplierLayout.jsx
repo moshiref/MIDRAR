@@ -1,6 +1,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useSupplierSession } from '../../features/supplier/session/SupplierSessionContext';
+import { resolveRole } from '../../features/supplier/team/permissions';
 import { SkeletonRows } from '../../features/supplier/ui/Skeleton';
 import SupplierAdBanner from '../../features/supplier/ui/SupplierAdBanner';
 import logoMark from '../../assets/logo-mark.png';
@@ -23,7 +24,7 @@ function showToast(message) {
 }
 
 export default function SupplierLayout() {
-  const { supplier, employee, signOut } = useSupplierSession();
+  const { supplier, employee, teamRoles, hasPermission, signOut } = useSupplierSession();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   // الأرقام المطلوبة نصًا في القائمة: طلبات التجهيز 2، المخزون 1
@@ -65,13 +66,18 @@ export default function SupplierLayout() {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
             </button>
           </div>
-          <div className="store-switch">
-            <div className="dot-avatar" />
-            <div>
+          <NavLink to="/supplier/settings" onClick={closeSidebar} className="store-switch" title="فتح الملف الشخصي للمورد">
+            {supplier?.logo ? (
+              <img src={supplier.logo} alt="" style={{ width: 30, height: 30, borderRadius: 9, objectFit: 'cover', flexShrink: 0 }} />
+            ) : (
+              <div className="dot-avatar" />
+            )}
+            <div className="info">
               <div className="name">{supplier?.companyName ?? 'مصنع الأمل للأثاث'}</div>
               <div className="status"><span className="dot" /> مورد نشط</div>
             </div>
-          </div>
+            <svg className="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 6l-6 6 6 6" /></svg>
+          </NavLink>
           <nav className="nav-scroll">
             <div className="nav-group">
               <NavLink
@@ -97,7 +103,7 @@ export default function SupplierLayout() {
                 className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" /></svg>
-                المنتجات
+                أضف منتجاتك
               </NavLink>
               <NavLink
                 to="/supplier/categories"
@@ -137,14 +143,16 @@ export default function SupplierLayout() {
             </div>
             <div className="nav-group">
               <div className="nav-group-label">الإدارة</div>
-              <NavLink
-                to="/supplier/employees"
-                onClick={closeSidebar}
-                className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="9" cy="8" r="3.2" /><path d="M2.5 20c1-4 4-6 6.5-6s5.5 2 6.5 6" /></svg>
-                الفريق
-              </NavLink>
+              {hasPermission('team.view') && (
+                <NavLink
+                  to="/supplier/team"
+                  onClick={closeSidebar}
+                  className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="9" cy="8" r="3.2" /><path d="M2.5 20c1-4 4-6 6.5-6s5.5 2 6.5 6" /></svg>
+                  فريق العمل
+                </NavLink>
+              )}
               <NavLink
                 to="/supplier/settings"
                 onClick={closeSidebar}
@@ -160,7 +168,7 @@ export default function SupplierLayout() {
               <div className="avatar en">{initials}</div>
               <div>
                 <div className="uname">{displayName}</div>
-                <div className="urole">{employee?.role === 'owner' ? 'مسؤول المورد' : employee?.role ?? 'مسؤول المورد'}</div>
+                <div className="urole">{resolveRole(employee?.roleId, teamRoles)?.name ?? 'عضو الفريق'}</div>
               </div>
             </NavLink>
           </div>

@@ -19,7 +19,7 @@ export default function SupplierFulfillmentProofPage() {
   const [files, setFiles] = useState([]);
   const [note, setNote] = useState('');
 
-  const canUpload = hasPermission('fulfillment');
+  const canUpload = hasPermission('orders.upload_proof');
 
   const reload = async () => {
     const list = await getOrders(supplier.id);
