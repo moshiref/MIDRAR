@@ -1,7 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
-import { X, ChevronRight, ChevronLeft, Search } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { X, ChevronRight, ChevronLeft, Search, Package, Boxes, CheckCircle2, Clock } from 'lucide-react';
 import { useSupplierSession } from '../session/SupplierSessionContext';
 import { getProducts, addProduct, updateProduct, deleteProduct, getCategories, addCategory, getOrders } from '../data/mockSupplierDb';
+import { exportToCsv } from '../lib/csv';
+import { printTablePdf } from '../lib/printPdf';
+import ExportMenu from '../components/ExportMenu';
 
 const SORT_OPTIONS = [
   { value: 'default', label: 'الأحدث' },
@@ -53,6 +56,9 @@ export default function SupplierProductsPage() {
   const [editingProduct, setEditingProduct] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [detailsProduct, setDetailsProduct] = useState(null);
+  const [confirmExit, setConfirmExit] = useState(false);
+  const overlayPressRef = useRef(false);
   const [saving, setSaving] = useState(false);
   const [images, setImages] = useState([]);
   const [video, setVideo] = useState(null);
@@ -127,7 +133,15 @@ export default function SupplierProductsPage() {
     setImages(product.images ?? []);
     setVideo(product.video ?? null);
   };
-  const closeDrawer = () => { if (!saving) setDrawerMode(null); };
+  const closeDrawer = () => { if (!saving) { setConfirmExit(false); setDrawerMode(null); } };
+  // A click on the backdrop asks before discarding the form. Only counts when
+  // the press also started on the backdrop, so a text selection dragged out
+  // of the form doesn't trigger it.
+  const handleOverlayMouseDown = (e) => { overlayPressRef.current = e.target === e.currentTarget; };
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget && overlayPressRef.current && !saving) setConfirmExit(true);
+    overlayPressRef.current = false;
+  };
 
   const addImages = (fileList) => {
     const files = Array.from(fileList);
@@ -257,6 +271,46 @@ export default function SupplierProductsPage() {
     return sorted;
   }, [products, filters, orderCounts]);
 
+  const stats = useMemo(() => {
+    const list = products ?? [];
+    return {
+      count: list.length,
+      stock: list.reduce((sum, p) => sum + totalStock(p), 0),
+      approved: list.filter((p) => p.status === 'approved').length,
+      pending: list.filter((p) => p.status === 'pending').length,
+    };
+  }, [products]);
+
+  const handleExport = (kind) => {
+    if (filteredProducts.length === 0) { showToast('لا توجد بيانات للتصدير'); return; }
+    const rows = filteredProducts.map((p) => ({
+      name: p.name,
+      category: categoryName(p.categoryId) ?? 'بدون قسم',
+      cost: firstCost(p),
+      suggestedPrice: firstSuggestedPrice(p),
+      minPrice: firstMinPrice(p),
+      stock: totalStock(p),
+      ordered: orderCounts[p.id] ?? 0,
+      status: STATUS_LABEL[p.status] ?? p.status,
+    }));
+    const columns = [
+      { key: 'name', header: 'المنتج' },
+      { key: 'category', header: 'القسم' },
+      { key: 'cost', header: 'سعر الجملة', num: true },
+      { key: 'suggestedPrice', header: 'السعر المقترح', num: true },
+      { key: 'minPrice', header: 'الحد الأدنى للمبيع', num: true },
+      { key: 'stock', header: 'المخزون', num: true },
+      { key: 'ordered', header: 'القطع المطلوبة', num: true },
+      { key: 'status', header: 'الحالة' },
+    ];
+    if (kind === 'excel') {
+      exportToCsv('products.csv', rows, columns);
+      showToast('تم تصدير ملف Excel');
+    } else if (!printTablePdf('تقرير المنتجات', rows, columns)) {
+      showToast('اسمح بالنوافذ المنبثقة لتصدير PDF');
+    }
+  };
+
   const hasActiveFilters = filters.search.trim() !== '' || filters.priceMin !== '' || filters.priceMax !== '' || filters.sortBy !== 'default';
   const clearFilters = () => setFilters(EMPTY_FILTERS);
 
@@ -274,7 +328,29 @@ export default function SupplierProductsPage() {
       <section className="page">
         <div className="page-head">
           <div><h1>المنتجات</h1><div className="sub">منتجاتك المعروضة على شبكة متاجر مدرار</div></div>
-          <div className="page-actions"><button type="button" className="btn btn-primary" onClick={openAddDrawer}>+ منتج جديد</button></div>
+          <div className="page-actions" style={{ display: 'flex', gap: 8 }}>
+            <ExportMenu onExport={handleExport} />
+            <button type="button" className="btn btn-primary" onClick={openAddDrawer}>+ منتج جديد</button>
+          </div>
+        </div>
+
+        <div className="kpi-grid">
+          <div className="kpi-card">
+            <span className="label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Package size={16} strokeWidth={2} color="var(--brand-blue)" />عدد المنتجات</span>
+            <div className="value en">{stats.count.toLocaleString('en-US')}</div>
+          </div>
+          <div className="kpi-card">
+            <span className="label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Boxes size={16} strokeWidth={2} color="var(--brand-blue)" />المخزون العام</span>
+            <div className="value en">{stats.stock.toLocaleString('en-US')}</div>
+          </div>
+          <div className="kpi-card">
+            <span className="label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={16} strokeWidth={2} color="var(--success)" />منتجات معتمدة</span>
+            <div className="value en" style={{ color: 'var(--success)' }}>{stats.approved.toLocaleString('en-US')}</div>
+          </div>
+          <div className="kpi-card">
+            <span className="label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Clock size={16} strokeWidth={2} color="var(--warning)" />قيد المراجعة</span>
+            <div className="value en" style={{ color: 'var(--warning)' }}>{stats.pending.toLocaleString('en-US')}</div>
+          </div>
         </div>
 
         {products.length === 0 ? (
@@ -330,7 +406,7 @@ export default function SupplierProductsPage() {
                 <thead><tr><th>المنتج</th><th>القسم</th><th className="num">التكلفة</th><th className="num">المخزون</th><th>الحالة</th><th /></tr></thead>
                 <tbody>
                   {filteredProducts.map((p) => (
-                    <tr key={p.id}>
+                    <tr key={p.id} className="clickable" onClick={() => setDetailsProduct(p)}>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                           {p.images?.[0]?.url ? (
@@ -351,7 +427,7 @@ export default function SupplierProductsPage() {
                       <td className="num">{firstCost(p)}</td>
                       <td className="num">{totalStock(p)}</td>
                       <td><span className={`badge ${STATUS_BADGE[p.status] ?? 'badge-neutral'}`}><span className="dot" />{STATUS_LABEL[p.status] ?? p.status}</span></td>
-                      <td className="row-actions" style={{ justifyContent: 'flex-end', gap: 8 }}>
+                      <td className="row-actions" style={{ justifyContent: 'flex-end', gap: 8 }} onClick={(e) => e.stopPropagation()}>
                         <button type="button" className="btn btn-secondary btn-sm" style={{ width: 'auto' }} onClick={() => openEditDrawer(p)}>تعديل</button>
                         <button type="button" className="btn btn-secondary btn-sm" style={{ width: 'auto', color: 'var(--danger)' }} onClick={() => setDeleteTarget(p)}>حذف</button>
                       </td>
@@ -366,8 +442,8 @@ export default function SupplierProductsPage() {
       </section>
 
       {drawerMode && (
-      <div className="modal-overlay" onClick={closeDrawer}>
-      <div className="modal-box form-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-overlay" onMouseDown={handleOverlayMouseDown} onClick={handleOverlayClick}>
+      <div className="modal-box form-modal">
         <div className="drawer-head">
           <h3>{drawerMode === 'edit' ? 'تعديل المنتج' : 'إضافة منتج جديد'}</h3>
           <button type="button" className="drawer-close" onClick={closeDrawer}><X size={16} strokeWidth={2} /></button>
@@ -520,6 +596,86 @@ export default function SupplierProductsPage() {
         </div>
       </div>
       </div>
+      )}
+
+      {drawerMode && confirmExit && (
+        <div className="modal-overlay" onClick={() => setConfirmExit(false)}>
+          <div className="modal-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 400 }}>
+            <h3 style={{ fontSize: '1.02rem', marginBottom: 10 }}>{drawerMode === 'edit' ? 'الخروج من تعديل المنتج؟' : 'الخروج من إضافة المنتج؟'}</h3>
+            <p style={{ fontSize: '0.88rem', marginBottom: 16, color: 'var(--text-muted)' }}>هل أنت متأكد من الخروج؟ لن يتم حفظ البيانات التي أدخلتها.</p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button type="button" className="btn btn-secondary" autoFocus onClick={() => setConfirmExit(false)}>لا</button>
+              <button type="button" className="btn btn-primary" style={{ background: 'var(--danger)' }} onClick={closeDrawer}>نعم، خروج</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {detailsProduct && (
+        <div className="modal-overlay" onClick={() => setDetailsProduct(null)}>
+          <div className="modal-box form-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="drawer-head">
+              <h3>تفاصيل المنتج</h3>
+              <button type="button" className="drawer-close" onClick={() => setDetailsProduct(null)}><X size={16} strokeWidth={2} /></button>
+            </div>
+            <div className="drawer-body">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
+                {detailsProduct.images?.[0]?.url ? (
+                  <img src={detailsProduct.images[0].url} alt="" className="prod-thumb" style={{ objectFit: 'cover', width: 64, height: 64 }} />
+                ) : (
+                  <div className="prod-thumb" style={{ background: thumbGradient(detailsProduct.id), width: 64, height: 64 }} />
+                )}
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '1.05rem', marginBottom: 6 }}>{detailsProduct.name}</div>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    <span className={`badge ${STATUS_BADGE[detailsProduct.status] ?? 'badge-neutral'}`}><span className="dot" />{STATUS_LABEL[detailsProduct.status] ?? detailsProduct.status}</span>
+                    {categoryName(detailsProduct.categoryId)
+                      ? <span className="badge badge-info">{categoryName(detailsProduct.categoryId)}</span>
+                      : <span className="badge badge-neutral">بدون قسم</span>}
+                  </div>
+                </div>
+              </div>
+
+              <div className="kpi-grid" style={{ gridTemplateColumns: 'repeat(2,1fr)', marginBottom: 18 }}>
+                <div className="kpi-card"><span className="label">سعر الجملة</span><div className="value en">{firstCost(detailsProduct)}</div></div>
+                <div className="kpi-card"><span className="label">السعر المقترح للمبيع</span><div className="value en">{firstSuggestedPrice(detailsProduct)}</div></div>
+                <div className="kpi-card"><span className="label">الحد الأدنى للمبيع</span><div className="value en">{firstMinPrice(detailsProduct)}</div></div>
+                <div className="kpi-card"><span className="label">المخزون المتاح</span><div className="value en">{totalStock(detailsProduct)}</div></div>
+                <div className="kpi-card"><span className="label">عدد القطع المطلوبة</span><div className="value en">{orderCounts[detailsProduct.id] ?? 0}</div></div>
+                <div className="kpi-card"><span className="label">عدد الخيارات</span><div className="value en">{detailsProduct.variants.length}</div></div>
+              </div>
+
+              <div className="field full" style={{ marginBottom: 18 }}>
+                <label>الوصف</label>
+                <p style={{ fontSize: '0.88rem', color: detailsProduct.description ? 'var(--text-primary)' : 'var(--text-muted)', whiteSpace: 'pre-wrap' }}>
+                  {detailsProduct.description || 'لا يوجد وصف لهذا المنتج.'}
+                </p>
+              </div>
+
+              {detailsProduct.images?.length > 1 && (
+                <div className="field full" style={{ marginBottom: 18 }}>
+                  <label>الصور</label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                    {detailsProduct.images.map((img) => (
+                      <img key={img.url} src={img.url} alt="" style={{ width: 84, height: 84, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--border-default)' }} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {detailsProduct.video?.url && (
+                <div className="field full">
+                  <label>الفيديو</label>
+                  <div className="video-preview"><video src={detailsProduct.video.url} controls /></div>
+                </div>
+              )}
+            </div>
+            <div className="drawer-foot">
+              <button type="button" className="btn btn-secondary" onClick={() => setDetailsProduct(null)}>إغلاق</button>
+              <button type="button" className="btn btn-primary" onClick={() => { const p = detailsProduct; setDetailsProduct(null); openEditDrawer(p); }}>تعديل المنتج</button>
+            </div>
+          </div>
+        </div>
       )}
 
       {deleteTarget && (
